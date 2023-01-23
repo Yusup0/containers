@@ -11,7 +11,7 @@ endif
 
 all: test
 
-test: gcov_obj/containers_test.o
+test: clean gcov_obj/containers_test.o
 	$(CC) gcov_obj/containers_test.o -o $@ $(LDFLAGS) $(GCOVFLAGS)
 	./test
 

@@ -68,12 +68,12 @@ constexpr size_t array<T, N>::size() const {
 
 template <class T, size_t N>
 const T &array<T, N>::front() const {
-  return *(ptr_);
+  return *ptr_;
 }
 
 template <class T, size_t N>
 T &array<T, N>::front() {
-  return *(ptr_);
+  return *ptr_;
 }
 
 template <class T, size_t N>
@@ -90,7 +90,13 @@ const T &array<T, N>::at(size_t position) const {
 
 template <class T, size_t N>
 void array<T, N>::fill(const T &value) {
-  for (size_t i = 0; i < N; i++) ptr_[i] = value;
+  array tmp;
+  try {
+    for (size_t i = 0; i < N; i++) tmp.ptr_[i] = value;
+  } catch (...) {
+    throw;
+  }
+  swap(tmp);
 }
 
 template <class T, size_t N>
@@ -123,7 +129,12 @@ void array<T, N>::CopyList(std::initializer_list<T> init_list) {
   ptr_ = new T[N];
   T *ptr2 = (T *)init_list.begin();
   int size_list = static_cast<int>(init_list.size());
-  for (int i = 0; i < size_list; i++) ptr_[i] = ptr2[i];
+  try {
+    for (int i = 0; i < size_list; i++) ptr_[i] = ptr2[i];
+  } catch (...) {
+    delete[] ptr_;
+    throw;
+  }
 }
 
 template <class T, size_t N>
@@ -234,7 +245,12 @@ typename array<T, N>::const_iterator array<T, N>::cbegin() const noexcept {
 template <class T, size_t N>
 void array<T, N>::CopyPtr(const array &other) {
   ptr_ = new T[N];
-  for (int i = 0; i < static_cast<int>(N); i++) ptr_[i] = other.ptr_[i];
+  try {
+    for (int i = 0; i < static_cast<int>(N); i++) ptr_[i] = other.ptr_[i];
+  } catch (...) {
+    delete[] ptr_;
+    throw;
+  }
 }
 }  // namespace s21
 #endif  // CONTAINERS_SRC_ARRAY_H_

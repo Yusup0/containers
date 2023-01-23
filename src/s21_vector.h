@@ -110,11 +110,11 @@ class vector {
   template <class... Other>
   void ArgumentParser(int position, T first, Other... other);
   void FreeMemory(vector &value);
-  bool ChangeCapacity(size_t size);
+  void ChangeCapacity(size_t size);
 };
 
 template <class T>
-bool vector<T>::ChangeCapacity(size_t size) {
+void vector<T>::ChangeCapacity(size_t size) {
   if (size > capacity_) {
     T *new_ptr = new T[size];
     try {
@@ -122,7 +122,7 @@ bool vector<T>::ChangeCapacity(size_t size) {
         new_ptr[i] = ptr_[i];
     } catch (...) {
       delete[] new_ptr;
-      return true;
+      throw;
     }
     delete[] ptr_;
     ptr_ = std::move(new_ptr);
@@ -133,13 +133,12 @@ bool vector<T>::ChangeCapacity(size_t size) {
       for (int i = 0; i < static_cast<int>(size); i++) new_ptr[i] = ptr_[i];
     } catch (...) {
       delete[] new_ptr;
-      return true;
+      throw;
     }
     delete[] ptr_;
     ptr_ = std::move(new_ptr);
     size_ = capacity_ = size;
   }
-  return false;
 }
 
 template <class T>
@@ -497,12 +496,13 @@ template <class T>
 void vector<T>::CopyList(std::initializer_list<T> init_list) {
   ptr_ = new T[init_list.size()];
   try {
-    T *ptr2 = (T *)init_list.begin();
+    auto *ptr2 = init_list.begin();
     for (int i = 0; i < static_cast<int>(init_list.size()); i++)
-      ptr_[i] = ptr2[i];
+      ptr_[i] = *ptr2++;
   } catch (...) {
     delete[] ptr_;
     ptr_ = nullptr;
+    throw;
   }
   size_ = capacity_ = init_list.size();
 }
@@ -606,15 +606,14 @@ typename vector<T>::const_iterator vector<T>::cbegin() const {
 
 template <class T>
 void vector<T>::CopyPtr(const vector &other) {
-  ptr_ = new (std::nothrow) T[other.capacity_];
-  if (!ptr_) return;
+  ptr_ = new T[other.capacity_];
   try {
     for (int i = 0; i < static_cast<int>(other.size_); i++)
       ptr_[i] = other.ptr_[i];
   } catch (...) {
     delete[] ptr_;
     ptr_ = nullptr;
-    return;
+    throw;
   }
   size_ = other.size();
   capacity_ = other.capacity();
@@ -647,29 +646,26 @@ size_t vector<T>::capacity() const {
 
 template <class T>
 vector<T>::vector() {
-  ptr_ = new (std::nothrow) T[512];
-  if (!ptr_) return;
+  ptr_ = new T[512];
   size_ = 0;
   capacity_ = 512;
 }
 
 template <class T>
 vector<T>::vector(int count) {
-  ptr_ = new (std::nothrow) T[count];
-  if (!ptr_) return;
+  ptr_ = new T[count];
   size_ = capacity_ = count;
 }
 
 template <class T>
 vector<T>::vector(size_t count, T value) {
-  ptr_ = new (std::nothrow) T[count];
-  if (!ptr_) return;
+  ptr_ = new T[count];
   try {
-    for (int i = 0; i < static_cast<int>(count); i++) ptr_[i] = value;
+    for (size_t i = 0; i < count; i++) ptr_[i] = value;
   } catch (...) {
     delete[] ptr_;
     ptr_ = nullptr;
-    return;
+    throw;
   }
   size_ = capacity_ = count;
 }
