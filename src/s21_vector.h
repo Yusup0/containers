@@ -21,8 +21,8 @@ class vector {
   vector();
   vector(const vector &other);
   vector(vector &&other);
-  explicit vector(int count);
-  vector(size_t count, T value);
+  explicit vector(size_type count);
+  vector(size_type count, T value);
   vector(std::initializer_list<T> init_list);
   template <class InputIterator>
   vector(InputIterator first, InputIterator last);
@@ -48,13 +48,13 @@ class vector {
   bool operator>=(vector &other) const {
     return !ComparisonVector(other) || ComparisonVector(other) == 1;
   }
-  T &operator[](const size_t n);
-  const T &operator[](const size_t n) const;
+  T &operator[](const size_type n);
+  const T &operator[](const size_type n) const;
   void push_back(const T &value);
   void push_back(T &&value);
   void pop_back();
   void pop_front();
-  void reserve(size_t count);
+  void reserve(size_type count);
   void shrink_to_fit();
   iterator begin();
   const_iterator begin() const;
@@ -69,56 +69,57 @@ class vector {
   const_reverse_iterator rend() const;
   const_reverse_iterator crend() const;
   bool empty() const;
-  size_t size() const;
-  size_t capacity() const;
+  size_type size() const;
+  size_type capacity() const;
   void assign(std::initializer_list<T> init_list);
   template <class InputIterator>
   void assign(InputIterator first, InputIterator last);
-  void assign(size_t count, const T value);
+  void assign(size_type count, const T value);
   void swap(vector &other);
-  T &at(size_t position);
-  const T &at(size_t position) const;
+  T &at(size_type position);
+  const T &at(size_type position) const;
   T &back();
   const T &back() const;
   T &front();
   const T &front() const;
   iterator insert(const_iterator position, const T &value);
-  void insert(const_iterator position, size_t count, const T &value);
+  void insert(const_iterator position, size_type count, const T &value);
   template <class InputIterator>
   void insert(const_iterator position, InputIterator first, InputIterator last);
   void insert(const_iterator position, std::initializer_list<T> init_list);
   void clear();
-  void resize(size_t new_size);
-  void resize(size_t new_size, const T &value);
+  void resize(size_type new_size);
+  void resize(size_type new_size, const T &value);
   iterator erase(const_iterator position);
   iterator erase(const_iterator first, const_iterator last);
 
  private:
   T *ptr_ = nullptr;
-  size_t size_;
-  size_t capacity_;
+  size_type size_;
+  size_type capacity_;
   int ComparisonVector(vector &other) const;
-  inline void ArgumentParser([[maybe_unused]] int position) {}
+  inline void ArgumentParser([[maybe_unused]] size_type position) {}
   void CopyList(std::initializer_list<T> init_list);
   void CopyPtr(const vector &other);
   void Moveright(size_type position, size_type count);
-  void MoveLeft(size_type position, size_type count);
   size_type CountAfter(const_iterator position) const;
   template <class... Other>
-  void ArgumentParser(int position, T first, Other... other);
+  void ArgumentParser(size_type position, T first, Other... other);
   void FreeMemory(vector &value);
-  bool ChangeCapacity(size_t size);
+  void ChangeCapacity(size_type size);
+  template <class InputIterator>
+  void InsertBack(InputIterator first, InputIterator last);
 };
 
 template <class T>
-bool vector<T>::ChangeCapacity(size_t size) {
+void vector<T>::ChangeCapacity(size_type size) {
   if (size > capacity_) {
     T *new_ptr = new T[size];
     try {
       for (size_type i = 0; i < capacity_; i++) new_ptr[i] = ptr_[i];
     } catch (...) {
       delete[] new_ptr;
-      return true;
+      throw;
     }
     delete[] ptr_;
     ptr_ = std::move(new_ptr);
@@ -129,13 +130,12 @@ bool vector<T>::ChangeCapacity(size_t size) {
       for (size_type i = 0; i < size; i++) new_ptr[i] = ptr_[i];
     } catch (...) {
       delete[] new_ptr;
-      return true;
+      throw;
     }
     delete[] ptr_;
     ptr_ = std::move(new_ptr);
     size_ = capacity_ = size;
   }
-  return false;
 }
 
 template <class T>
@@ -147,25 +147,17 @@ void vector<T>::FreeMemory(vector &value) {
 template <class T>
 template <class... Types>
 void vector<T>::emplace_back(Types &&...args) {
-  try {
-    vector tmp(*this);
-    tmp.ArgumentParser(0, args...);
-    swap(tmp);
-  } catch (...) {
-    return;
-  }
+  vector tmp(*this);
+  tmp.ArgumentParser(size_, args...);
+  swap(tmp);
 }
 
 template <class T>
 template <class... Types>
 void vector<T>::emplace_front(Types &&...args) {
-  try {
-    vector tmp(*this);
-    tmp.ArgumentParser(size_, args...);
-    swap(tmp);
-  } catch (...) {
-    return;
-  }
+  vector tmp(*this);
+  tmp.ArgumentParser(0, args...);
+  swap(tmp);
 }
 
 template <class T>
@@ -200,7 +192,7 @@ template <class T>
 template <class InputIterator>
 vector<T>::vector(InputIterator first, InputIterator last) {
   vector tmp(std::distance(first, last));
-  for (int i = 0; i < static_cast<int>(tmp.size_); i++) tmp.ptr_[i] = *first++;
+  for (size_type i = 0; i < tmp.size_; i++) tmp.ptr_[i] = *first++;
   std::swap(*this, tmp);
 }
 
@@ -236,60 +228,49 @@ typename vector<T>::const_reverse_iterator vector<T>::crbegin() const {
 
 template <class T>
 template <class... Other>
-void vector<T>::ArgumentParser(int position, T first, Other... other) {
-  Moveright(position, 1);
-  ptr_[size_ - position - 1] = first;
-  ArgumentParser(position, other...);
+void vector<T>::ArgumentParser(size_type position, T first, Other... other) {
+  if ((size_ + 1) > capacity_) ChangeCapacity(capacity_ ? capacity_ * 2 : 512);
+  for (size_type i = position; i < size_; i++) ptr_[i + 1] = ptr_[i];
+  size_++;
+  ptr_[position] = first;
+  ArgumentParser(position + 1, other...);
 }
 
 template <class T>
 template <class... Types>
 typename vector<T>::iterator vector<T>::emplace(iterator position,
                                                 Types &&...args) {
-  int count_after = CountAfter(position);
-  int size_before = size_;
+  size_type pos = std::distance(begin(), position);
   vector tmp(*this);
-  if (tmp.ptr_) {
-    try {
-      tmp.ArgumentParser(count_after, args...);
-    } catch (...) {
-      return ptr_;
-    }
-    swap(tmp);
-    return ptr_ + size_ - count_after - (size_ - size_before);
-  }
-  return ptr_;
+  tmp.ArgumentParser(pos, args...);
+  swap(tmp);
+  return iterator(ptr_ + pos);
 }
 
 template <class T>
 typename vector<T>::iterator vector<T>::erase(const_iterator first,
                                               const_iterator last) {
-  int count = size_ - CountAfter(first);
-  vector tmp(*this);
-  tmp.MoveLeft(count, std::distance(first, last));
+  size_type pos = std::distance(cbegin(), first);
+  size_type distance = std::distance(first, last);
+  vector tmp(size_ - distance);
+  for (size_type i = 0; i < pos; i++) tmp.ptr_[i] = ptr_[i];
+  for (size_type i = pos; i < tmp.size_; i++) tmp.ptr_[i] = ptr_[i + distance];
   swap(tmp);
-  return ptr_ + count;
-}
-
-template <class T>
-void vector<T>::MoveLeft(size_type position, size_type count) {
-  for (size_type i = position; i < size_ - count; i++)
-    ptr_[i] = ptr_[i + count];
-  size_ -= count;
+  return iterator(ptr_ + pos);
 }
 
 template <class T>
 typename vector<T>::iterator vector<T>::erase(const_iterator position) {
-  int count_after = CountAfter(position);
-  vector tmp(*this);
-  tmp.MoveLeft(size_ - count_after, 1);
-  iterator for_return = tmp.ptr_ + size_ - count_after;
+  size_type pos = std::distance(cbegin(), position);
+  vector tmp(size_ - 1);
+  for (size_type i = 0; i < pos; i++) tmp.ptr_[i] = ptr_[i];
+  for (size_type i = pos; i < tmp.size_; i++) tmp.ptr_[i] = ptr_[i + 1];
   swap(tmp);
-  return for_return;
+  return iterator(ptr_ + pos);
 }
 
 template <class T>
-void vector<T>::resize(size_t new_size, const T &value) {
+void vector<T>::resize(size_type new_size, const T &value) {
   if (size_ < new_size) {
     vector tmp(new_size, value);
     swap(tmp);
@@ -297,7 +278,7 @@ void vector<T>::resize(size_t new_size, const T &value) {
 }
 
 template <class T>
-void vector<T>::resize(size_t new_size) {
+void vector<T>::resize(size_type new_size) {
   if (size_ < new_size) ChangeCapacity(new_size);
   size_ = new_size;
 }
@@ -310,13 +291,14 @@ void vector<T>::clear() {
 template <class T>
 void vector<T>::insert(const_iterator position,
                        std::initializer_list<T> init_list) {
-  size_type count_after = CountAfter(position);
-  size_type count = init_list.size();
-  vector tmp(*this);
-  tmp.Moveright(count_after, count);
-  T *ptr2 = (T *)init_list.begin();
-  for (size_type i = 0; i < count; i++)
-    tmp.ptr_[tmp.size_ - count_after - count + i] = ptr2[i];
+  size_type distance = init_list.size();
+  size_type count = std::distance(cbegin(), position);
+  auto it = init_list.begin();
+  vector tmp(distance + size_);
+  for (size_type i = 0; i < count; i++) tmp.ptr_[i] = ptr_[i];
+  for (size_type i = count; i < count + distance; i++) tmp.ptr_[i] = *it++;
+  for (size_type i = count + distance; i < tmp.size_; i++)
+    tmp.ptr_[i] = ptr_[i - distance];
   swap(tmp);
 }
 
@@ -324,22 +306,28 @@ template <class T>
 template <class InputIterator>
 void vector<T>::insert(const_iterator position, InputIterator first,
                        InputIterator last) {
-  size_type count_after = CountAfter(position);
-  size_type count = std::distance(first, last);
-  vector tmp(*this);
-  tmp.Moveright(count_after, count);
-  for (size_type i = 0; i < count; i++)
-    tmp.ptr_[tmp.size_ - count_after - count + i] = *first++;
+  size_type count = std::distance(cbegin(), position);
+  size_type distance = std::distance(first, last);
+  vector tmp(distance + size_);
+  for (size_type i = 0; i < count; i++) tmp.ptr_[i] = ptr_[i];
+  for (size_type i = count; i < count + distance; i++) tmp.ptr_[i] = *first++;
+  for (size_type i = count + distance; i < tmp.size_; i++)
+    tmp.ptr_[i] = ptr_[i - distance];
   swap(tmp);
 }
 
 template <class T>
-void vector<T>::insert(const_iterator position, size_t count, const T &value) {
-  int count_after = CountAfter(position);
-  vector tmp(*this);
-  tmp.Moveright(count_after, count);
-  for (int i = 0; i < static_cast<int>(count); i++)
-    tmp.ptr_[tmp.size_ - count_after - count + i] = value;
+template <class InputIterator>
+void vector<T>::InsertBack(InputIterator first, InputIterator last) {}
+
+template <class T>
+void vector<T>::insert(const_iterator position, size_type count, const T &value) {
+  size_type distance = std::distance(cbegin(), position);
+  vector tmp(count + size_);
+  for (size_type i = 0; i < distance; i++) tmp.ptr_[i] = ptr_[i];
+  for (size_type i = distance; i < distance + count; i++) tmp.ptr_[i] = value;
+  for (size_type i = distance + count; i < tmp.size_; i++)
+    tmp.ptr_[i] = ptr_[i - count];
   swap(tmp);
 }
 
@@ -366,12 +354,14 @@ void vector<T>::Moveright(size_type position, size_type count) {
 template <class T>
 typename vector<T>::iterator vector<T>::insert(const_iterator position,
                                                const T &value) {
-  int count_after = CountAfter(position);
-  vector tmp(*this);
-  tmp.Moveright(count_after, 1);
-  tmp.ptr_[tmp.size_ - count_after - 1] = value;
+  size_type distance = std::distance(cbegin(), position);
+  vector tmp(1 + size_);
+  for (size_type i = 0; i < distance; i++) tmp.ptr_[i] = ptr_[i];
+  tmp.ptr_[distance] = value;
+  for (size_type i = 1 + distance; i < tmp.size_; i++)
+    tmp.ptr_[i] = ptr_[i - 1];
   swap(tmp);
-  return ptr_ + size_ - count_after - 1;
+  return ptr_ + distance;
 }
 
 template <class T>
@@ -400,13 +390,13 @@ const T &vector<T>::back() const {
 }
 
 template <class T>
-T &vector<T>::at(size_t position) {
+T &vector<T>::at(size_type position) {
   if (position >= size_) throw std::out_of_range("going outside the array");
   return *(ptr_ + position);
 }
 
 template <class T>
-const T &vector<T>::at(size_t position) const {
+const T &vector<T>::at(size_type position) const {
   if (position >= size_) throw std::out_of_range("going outside the array");
   return *(ptr_ + position);
 }
@@ -419,22 +409,22 @@ void vector<T>::swap(vector &other) {
 }
 
 template <class T>
-void vector<T>::assign(size_t count, const T value) {
+void vector<T>::assign(size_type count, const T value) {
   vector tmp(count, value);
-  std::swap(*this, tmp);
+  swap(tmp);
 }
 
 template <class T>
 template <class InputIterator>
 void vector<T>::assign(InputIterator first, InputIterator last) {
   vector tmp(first, last);
-  std::swap(*this, tmp);
+  swap(tmp);
 }
 
 template <class T>
 void vector<T>::assign(std::initializer_list<T> init_list) {
   vector tmp(init_list);
-  std::swap(*this, tmp);
+  swap(tmp);
 }
 
 template <class T>
@@ -442,7 +432,7 @@ void vector<T>::CopyList(std::initializer_list<T> init_list) {
   ptr_ = new T[init_list.size()];
   try {
     auto *ptr2 = init_list.begin();
-    for (int i = 0; i < static_cast<int>(init_list.size()); i++)
+    for (size_type i = 0; i < init_list.size(); i++)
       ptr_[i] = *ptr2++;
   } catch (...) {
     delete[] ptr_;
@@ -454,8 +444,9 @@ void vector<T>::CopyList(std::initializer_list<T> init_list) {
 
 template <class T>
 int vector<T>::ComparisonVector(vector &other) const {
-  int res = 0, size1 = size(), size2 = other.size();
-  for (int i = 0; i < size1 && i < size2; i++) {
+  int res = 0;
+  size_type size1 = size(), size2 = other.size();
+  for (size_type i = 0; i < size1 && i < size2; i++) {
     if (ptr_[i] != other.ptr_[i]) {
       res = ptr_[i] > other.ptr_[i] ? 1 : -1;
       break;
@@ -473,7 +464,7 @@ void vector<T>::shrink_to_fit() {
 }
 
 template <class T>
-void vector<T>::reserve(size_t count) {
+void vector<T>::reserve(size_type count) {
   if (capacity_ < count) {
     ChangeCapacity(count);
     size_ = count;
@@ -498,12 +489,12 @@ bool vector<T>::empty() const {
 }
 
 template <class T>
-T &vector<T>::operator[](const size_t n) {
+T &vector<T>::operator[](const size_type n) {
   return *(ptr_ + n);
 }
 
 template <class T>
-const T &vector<T>::operator[](const size_t n) const {
+const T &vector<T>::operator[](const size_type n) const {
   return *(ptr_ + n);
 }
 
@@ -541,7 +532,7 @@ template <class T>
 void vector<T>::CopyPtr(const vector &other) {
   ptr_ = new T[other.capacity_];
   try {
-    for (int i = 0; i < static_cast<int>(other.size_); i++)
+    for (size_type i = 0; i < other.size_; i++)
       ptr_[i] = other.ptr_[i];
   } catch (...) {
     delete[] ptr_;
@@ -567,13 +558,13 @@ vector<T>::~vector() {
   FreeMemory(*this);
 }
 
-template <class T>
-size_t vector<T>::size() const {
+template <class T> 
+typename vector<T>::size_type vector<T>::size() const {
   return size_;
 }
 
 template <class T>
-size_t vector<T>::capacity() const {
+typename vector<T>::size_type vector<T>::capacity() const {
   return capacity_;
 }
 
@@ -585,16 +576,16 @@ vector<T>::vector() {
 }
 
 template <class T>
-vector<T>::vector(int count) {
+vector<T>::vector(size_type count) {
   ptr_ = new T[count];
   size_ = capacity_ = count;
 }
 
 template <class T>
-vector<T>::vector(size_t count, T value) {
+vector<T>::vector(size_type count, T value) {
   ptr_ = new T[count];
   try {
-    for (size_t i = 0; i < count; i++) ptr_[i] = value;
+    for (size_type i = 0; i < count; i++) ptr_[i] = value;
   } catch (...) {
     delete[] ptr_;
     ptr_ = nullptr;
