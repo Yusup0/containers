@@ -133,12 +133,6 @@ void array<T, N>::CopyList(std::initializer_list<T> init_list) {
   for (size_type i = 0; i < init_list.size(); i++) ptr_[i] = *it++;
 }
 
-// Еще после отказа от динамисечкой памяти очень рекомнедую проверить случаи:
-// 1) Создание массива размера 0, -1
-// 2) Работу begin() / end() при размере 1 и как работает проход по массиву
-// Уверен, что там есть какие-то тонкости (хотя я сам не делал и не знаю этого)
-// + почитайте документацию на array, такое ощущение, что вы гадали, как это
-// работает, а не по доке делали
 template <class T, size_t N>
 array<T, N>::array(array &&other) noexcept {
   for (size_type i = 0; i < N; i++) ptr_[i] = std::move(other.ptr_[i]);

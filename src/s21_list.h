@@ -225,21 +225,13 @@ class list {
 template <class T>
 template <class... Types>
 void list<T>::emplace_back(Types &&...args) {
-  list tmp;
-  tmp.ArgumentParser(tmp.anchor_, std::forward<Types>(args)...);
-  if (!tmp.size()) return;
-  AddList(anchor_, tmp.anchor_->p_next, tmp.anchor_->p_prev);
-  BindList(tmp.anchor_, tmp.anchor_);
+  emplace(end(), std::forward<Types>(args)...);
 }
 
 template <class T>
 template <class... Types>
 void list<T>::emplace_front(Types &&...args) {
-  list tmp;
-  tmp.ArgumentParser(tmp.anchor_, std::forward<Types>(args)...);
-  if (!tmp.size()) return;
-  AddList(anchor_->p_next, tmp.anchor_->p_next, tmp.anchor_->p_prev);
-  BindList(tmp.anchor_, tmp.anchor_);
+  emplace(begin(), std::forward<Types>(args)...);
 }
 
 template <class T>

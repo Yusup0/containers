@@ -1,7 +1,6 @@
 #ifndef S21_CONTAINERS_SRC_MULTISET_H_
 #define S21_CONTAINERS_SRC_MULTISET_H_
 
-// 2) Отсутствует реализация метода merge() - требуется по заданию
 
 #include <stdlib.h>
 

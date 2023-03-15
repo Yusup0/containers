@@ -240,7 +240,6 @@ EXPECT_EQ(0, Comparison(a1, a2));
 a1.erase(a1.find(16));
 a2.erase(a2.find(16));
 EXPECT_EQ(0, Comparison(a1, a2));
-
 }
 
 TEST(map, clear) {
@@ -458,6 +457,19 @@ TEST(map, emplace) {
   EXPECT_EQ(true, a <= a1);
   EXPECT_EQ(true, a >= a1);
   EXPECT_EQ(false, a > a1);
+
+  s21::map<int, std::string> a2;
+  s21::map<int, std::string> a3 = { {2, "2"}, {3, "3"}, {4, "4"}};
+  s21::map<int, std::string> a4 = { {2, "2"}, {3, "3"}, {4, "4"}, {12, "12"}, {13, "13"}, {1, "1"}};
+  a2.emplace(value_type(4, "4"), value_type(2, "2"), value_type(3, "3"));
+  EXPECT_EQ(true, a3 == a2);
+  a2.emplace(value_type(4, "4"), value_type(2, "2"), value_type(3, "3"));
+  EXPECT_EQ(true, a3 == a2);
+  a2.emplace(value_type(1, "1"), value_type(12, "12"), value_type(13, "13"));
+  EXPECT_EQ(true, a4 == a2);
+  a2.clear();
+  a2.emplace(value_type(4, "4"), value_type(2, "2"), value_type(3, "3"));
+  EXPECT_EQ(true, a3 == a2);
 }
 
 TEST(map, find) {
@@ -956,6 +968,20 @@ TEST(set, emplace) {
   EXPECT_EQ(true, a <= a1);
   EXPECT_EQ(true, a >= a1);
   EXPECT_EQ(false, a > a1);
+
+  s21::set<std::string> a2;
+  s21::set<std::string> a3 = {"2", "3", "4"};
+  s21::set<std::string> a4 = {"2", "3", "4", "12", "13", "1"};
+  a2.emplace("2", "3", "4");
+  EXPECT_EQ(true, a3 == a2);
+  a2.emplace("2", "3", "4");
+  EXPECT_EQ(true, a3 == a2);
+  a2.emplace("1", "12", "13");
+  EXPECT_EQ(true, a4 == a2);
+  a2.clear();
+  a2.emplace("2", "3", "4","11", "12", "14", "112");
+  s21::set<std::string> a5 = {"2", "3", "4","11", "12", "14", "112"};
+  EXPECT_EQ(true, a5 == a2);
 }
 
 TEST(set, find) {
@@ -1660,6 +1686,23 @@ TEST(list, emplace) {
   EXPECT_EQ(true, a <= a1);
   EXPECT_EQ(true, a >= a1);
   EXPECT_EQ(false, a > a1);
+
+  s21::list<std::string> a2;
+  s21::list<std::string> a3 = {"2", "3", "4"};
+  s21::list<std::string> a4 = {"2", "3", "4", "12", "13", "1"};
+  a2.emplace(a2.end(),"2", "3", "4");
+  EXPECT_EQ(true, a3 == a2);
+  a2.emplace(a2.end(),"2", "3", "4");
+  s21::list<std::string> a6 = {"2", "3", "4", "2", "3", "4"};
+  EXPECT_EQ(true, a6 == a2);
+  s21::list<std::string>::iterator it = a2.begin();
+  a2.emplace(++it, "1", "12", "13");
+  s21::list<std::string> a7 = { "2", "1", "12", "13", "3", "4", "2", "3", "4"};
+  EXPECT_EQ(true, a7 == a2);
+  a2.clear();
+  a2.emplace(a2.end(),"2", "3", "4","11", "12", "14", "112");
+  s21::list<std::string> a5 = {"2", "3", "4","11", "12", "14", "112"};
+  EXPECT_EQ(true, a5 == a2);
 }
 
 TEST(list, emplace_back) {
@@ -2240,6 +2283,23 @@ TEST(vector, emplace) {
   EXPECT_EQ(true, a <= a1);
   EXPECT_EQ(true, a >= a1);
   EXPECT_EQ(false, a > a1);
+
+    s21::vector<std::string> a2;
+  s21::vector<std::string> a3 = {"2", "3", "4"};
+  s21::vector<std::string> a4 = {"2", "3", "4", "12", "13", "1"};
+  a2.emplace(a2.end(),"2", "3", "4");
+  EXPECT_EQ(true, a3 == a2);
+  a2.emplace(a2.end(),"2", "3", "4");
+  s21::vector<std::string> a6 = {"2", "3", "4", "2", "3", "4"};
+  EXPECT_EQ(true, a6 == a2);
+  s21::vector<std::string>::iterator it = a2.begin();
+  a2.emplace(++it, "1", "12", "13");
+  s21::vector<std::string> a7 = { "2", "1", "12", "13", "3", "4", "2", "3", "4"};
+  EXPECT_EQ(true, a7 == a2);
+  a2.clear();
+  a2.emplace(a2.end(),"2", "3", "4","11", "12", "14", "112");
+  s21::vector<std::string> a5 = {"2", "3", "4","11", "12", "14", "112"};
+  EXPECT_EQ(true, a5 == a2);
 }
 
 TEST(vector, emplace_back) {
@@ -2580,6 +2640,22 @@ TEST(multiset, emplace) {
   EXPECT_EQ(true, a <= a1);
   EXPECT_EQ(true, a >= a1);
   EXPECT_EQ(false, a > a1);
+
+  s21::multiset<std::string> a2;
+  s21::multiset<std::string> a3 = {"2", "3", "4"};
+  
+  a2.emplace("2", "3", "4");
+  EXPECT_EQ(true, a3 == a2);
+  a2.emplace("2", "3", "4");
+  s21::multiset<std::string> a6 = {"2", "3", "4", "2", "3", "4"};
+  EXPECT_EQ(true, a6 == a2);
+  a2.emplace("1", "12", "13");
+  s21::multiset<std::string> a4 = {"2", "3", "4", "2", "3", "4", "1", "12", "13"};
+  EXPECT_EQ(true, a4 == a2);
+  a2.clear();
+  a2.emplace("2", "3", "4","11", "12", "14", "112");
+  s21::multiset<std::string> a5 = {"2", "3", "4","11", "12", "14", "112"};
+  EXPECT_EQ(true, a5 == a2);
 }
 
 TEST(multiset, lower_bound) {

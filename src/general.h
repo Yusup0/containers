@@ -644,8 +644,8 @@ class BTree {
   void FreeSet(StructGeneral<Key> *root) noexcept {
     if (root->left_ != nullptr) FreeSet(root->left_);
     if (root->right_ != nullptr) FreeSet(root->right_);
+    size_ -= root->count_;
     delete root;
-    size_--;
   }
 };
 

@@ -206,7 +206,8 @@ template <class... Other>
 void vector<T>::ArgumentParser(size_type position, value_type &&first,
                                Other... other) {
   if ((size_ + 1) > capacity_) ChangeCapacity(capacity_ ? capacity_ * 2 : 128);
-  for (size_type i = position; i < size_; i++) ptr_[i + 1] = std::move(ptr_[i]);
+  for (size_type i = size_; i > position; i--) 
+    ptr_[i] = ptr_[i - 1];
   size_++;
   ptr_[position] = std::move(first);
   ArgumentParser(position + 1, std::forward<Other>(other)...);
