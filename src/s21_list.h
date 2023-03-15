@@ -1,48 +1,42 @@
-#ifndef CONTAINERS_SRC_LIST_H_
-#define CONTAINERS_SRC_LIST_H_
+#ifndef S21_CONTAINERS_SRC_LIST_H_
+#define S21_CONTAINERS_SRC_LIST_H_
 
 #include <stdlib.h>
 
 #include <iostream>
 #include <iterator>
+#include <limits>
 
 namespace s21 {
 
 template <class T>
 class list;
+template <class T>
+class ListIteratorConst;
 
 template <class T>
 struct StructList {
-  StructList<T> *p_next;
-  StructList<T> *p_prev;
-  T value = T();
+  StructList(T value) { value_ = value; }
+  StructList<T> *p_next = nullptr;
+  StructList<T> *p_prev = nullptr;
+  T value_ = T();
 };
 
-template <class T, class Reference = T, class Struct = StructList<T>>
+template <class T>
 class ListIterator {
   friend class list<T>;
+  friend class ListIteratorConst<T>;
 
  public:
-  using value_type = Reference;
-  using pointer = Reference *;
-  using reference = Reference &;
+  using value_type = T;
+  using pointer = T *;
+  using reference = T &;
   using difference_type = std::ptrdiff_t;
   using iterator_category = std::bidirectional_iterator_tag;
 
-  ListIterator() {}
+  ListIterator() = default;
   ListIterator(StructList<T> *address) : address_(address) {}
-  ListIterator(const ListIterator &other) : address_(other.address_) {}
-  ListIterator(ListIterator &&other) { address_ = std::move(other.address_); }
-  ListIterator &operator=(const ListIterator &other) {
-    if (this != &other) address_ = other.address_;
-    return *this;
-  }
-  ListIterator &operator=(ListIterator &&other) {
-    if (this != &other) address_ = std::move(other.address_);
-    return *this;
-  }
-  ~ListIterator(){};
-  reference operator*() const { return address_->value; }
+  reference operator*() const { return address_->value_; }
   ListIterator &operator++() {
     address_ = address_->p_next;
     return *this;
@@ -59,38 +53,98 @@ class ListIterator {
     address_ = address_->p_prev;
     return address_->p_next;
   }
-  bool operator==(const ListIterator it) const {
-    return address_ == it.address_;
+  bool operator==(const ListIterator &it) { return address_ == it.address_; }
+  bool operator==(const ListIteratorConst<T> &it1) {
+    return address_ == it1.address_;
   }
-  bool operator!=(const ListIterator it) const {
+  bool operator!=(const ListIterator &it) const {
+    return address_ != it.address_;
+  }
+  bool operator!=(const ListIteratorConst<T> &it) const {
     return address_ != it.address_;
   }
 
  private:
-  Struct *address_;
+  StructList<T> *address_ = nullptr;
+};
+
+template <class T>
+class ListIteratorConst {
+  friend class list<T>;
+  friend class ListIterator<T>;
+
+ public:
+  using value_type = const T;
+  using pointer = const T *;
+  using reference = const T &;
+  using difference_type = std::ptrdiff_t;
+  using iterator_category = std::bidirectional_iterator_tag;
+
+  ListIteratorConst() = default;
+  ListIteratorConst(const StructList<T> *address) : address_(address) {}
+  ListIteratorConst(ListIterator<T> &other) : address_(other.address_) {}
+  ListIteratorConst &operator=(ListIterator<T> &other) {
+    address_ = other.address_;
+    return *this;
+  }
+  reference operator*() const { return address_->value_; }
+  ListIteratorConst &operator++() {
+    address_ = address_->p_next;
+    return *this;
+  }
+  ListIteratorConst operator++(int) {
+    address_ = address_->p_next;
+    return address_->p_prev;
+  }
+  ListIteratorConst &operator--() {
+    address_ = address_->p_prev;
+    return *this;
+  }
+  ListIteratorConst operator--(int) {
+    address_ = address_->p_prev;
+    return address_->p_next;
+  }
+  bool operator==(const ListIteratorConst &it) const {
+    return address_ == it.address_;
+  }
+  bool operator==(const ListIterator<T> &it1) const {
+    return address_ == it1.address_;
+  }
+  bool operator!=(const ListIteratorConst &it) const {
+    return address_ != it.address_;
+  }
+  bool operator!=(const ListIterator<T> &it) const {
+    return address_ != it.address_;
+  }
+
+ private:
+  const StructList<T> *address_ = nullptr;
 };
 
 template <class T>
 class list {
  public:
-  using iterator = ListIterator<T>;
-  using const_iterator = ListIterator<T, const T, const StructList<T>>;
-  using reverse_iterator = std::reverse_iterator<iterator>;
-  using const_reverse_iterator = std::reverse_iterator<const_iterator>;
+  using value_type = T;
+  using reference = T &;
+  using const_reference = const T &;
+  using size_type = size_t;
 
-  explicit list(int count);
+  using iterator = ListIterator<T>;
+  using const_iterator = ListIteratorConst<T>;
+
+  explicit list(size_type count);
   template <class InputIterator>
   list(InputIterator first, InputIterator last);
   list();
-  list(size_t count, T value);
-  list(list &&right);
+  list(size_type count, value_type value);
+  list(list &&right) noexcept;
   list(std::initializer_list<T> init_list);
   list(const list &right);
   template <class Container>
   list<T> &operator=(const Container &right);
   list<T> &operator=(list &right);
-  list<T> &operator=(list &&right);
-  ~list();
+  list<T> &operator=(list &&right) noexcept;
+  ~list() noexcept;
   bool operator<(list &other) const { return ComparisonList(other) == -1; }
   bool operator>(list &other) const { return ComparisonList(other) == 1; }
   bool operator==(list &other) const { return !ComparisonList(other); }
@@ -107,75 +161,63 @@ class list {
   void emplace_back(Types &&...args);
   template <class... Types>
   void emplace_front(Types &&...args);
-  size_t size() const;
-  iterator begin();
-  const_iterator begin() const;
-  const_iterator cbegin() const;
-  iterator end();
-  const_iterator end() const;
-  const_iterator cend() const;
-  reverse_iterator rbegin();
-  const_reverse_iterator rbegin() const;
-  const_reverse_iterator crbegin() const;
-  reverse_iterator rend();
-  const_reverse_iterator rend() const;
-  const_reverse_iterator crend() const;
-  bool empty() const;
-  void assign(size_t count, T value);
+  size_type size() const noexcept;
+  size_type max_size() const noexcept;
+  iterator begin() noexcept;
+  const_iterator begin() const noexcept;
+  const_iterator cbegin() const noexcept;
+  iterator end() noexcept;
+  const_iterator end() const noexcept;
+  const_iterator cend() const noexcept;
+  bool empty() const noexcept;
+  void assign(size_type count, value_type value);
   template <class InputIterator>
   void assign(InputIterator first, InputIterator last);
   void assign(std::initializer_list<T> init_list);
-  void swap(list &other);
-  T &front();
-  const T &front() const;
-  T &back();
-  const T &back() const;
-  void push_back(const T &value);
-  void push_front(const T &value);
+  void swap(list &other) noexcept;
+  reference front() noexcept;
+  const_reference front() const noexcept;
+  reference back() noexcept;
+  const_reference back() const noexcept;
+  void push_back(const_reference value);
+  void push_front(const_reference value);
   void pop_back();
   void pop_front();
-  iterator insert(iterator where, const T &value);
-  iterator insert(iterator where, size_t count, const T &value);
+  iterator insert(iterator where, const_reference value);
+  void insert(iterator where, size_type count, const_reference value);
   iterator insert(iterator where, std::initializer_list<T> init_list);
   template <class InputIterator>
   void insert(iterator where, InputIterator first, InputIterator last);
   iterator erase(iterator where);
   iterator erase(iterator first, iterator last);
-  void remove(const T &value);
-  template <class Predicate>
-  void remove_if(Predicate pred);
-  void resize(size_t new_size, T value = T());
+  void remove(const_reference value);
+  void resize(size_type new_size, value_type value = value_type());
   void clear();
   void unique();
-  template <class BinaryPredicate>
-  void unique(BinaryPredicate pred);
-  void splice(iterator position, list<T> &donor);
-  void splice(iterator position, list<T> &donor, iterator donor_position);
-  void splice(iterator position, list<T> &donor, iterator first, iterator last);
-  void reverse();
+  void splice(const_iterator position, list<T> &donor);
+  void splice(const_iterator position, list<T> &donor,
+              const_iterator donor_position);
+  void reverse() noexcept;
   void sort();
   void merge(list<T> &right);
 
  private:
   StructList<T> *anchor_ = nullptr;
-  size_t size_ = 0;
-  StructList<T> *CreatePart();
+  size_type size_ = 0;
   void CreateAnchor();
-  bool CreateList(const size_t count);
   void AddToEnd(StructList<T> *value);
   int ComparisonList(const list &other) const;
-  bool FillList(T value);
-  bool FillList(std::initializer_list<T> init_list);
   void DeliteValue(StructList<T> *value);
   void DeliteList(StructList<T> *first, StructList<T> *last);
-  void FreeMemoryList(StructList<T> *first, StructList<T> *last);
+  void FreeMemoryList(StructList<T> *first, StructList<T> *last) noexcept;
   void AddValue(StructList<T> *position, StructList<T> *value);
   void AddList(StructList<T> *position, StructList<T> *first,
-               StructList<T> *last);
+               StructList<T> *last) noexcept;
   void ArgumentParser([[maybe_unused]] StructList<T> *position) {}
-  void BindList(StructList<T> *begin, StructList<T> *end) const;
+  void BindList(StructList<T> *begin, StructList<T> *end) const noexcept;
   template <class... Other>
-  void ArgumentParser(StructList<T> *position, T first, Other... other);
+  void ArgumentParser(StructList<T> *position, value_type &&first,
+                      Other... other);
   template <class InputIterator>
   void CopyList(InputIterator first, InputIterator last);
 };
@@ -184,32 +226,20 @@ template <class T>
 template <class... Types>
 void list<T>::emplace_back(Types &&...args) {
   list tmp;
-  if (tmp.size_) {
-    try {
-      tmp.ArgumentParser(tmp.anchor_, args...);
-    } catch (...) {
-      return;
-    }
-    AddList(anchor_, tmp.anchor_->p_next, tmp.anchor_->p_prev);
-    BindList(tmp.anchor_, tmp.anchor_);
-    size_ += tmp.size();
-  }
+  tmp.ArgumentParser(tmp.anchor_, std::forward<Types>(args)...);
+  if (!tmp.size()) return;
+  AddList(anchor_, tmp.anchor_->p_next, tmp.anchor_->p_prev);
+  BindList(tmp.anchor_, tmp.anchor_);
 }
 
 template <class T>
 template <class... Types>
 void list<T>::emplace_front(Types &&...args) {
   list tmp;
-  if (tmp.size_) {
-    try {
-      tmp.ArgumentParser(tmp.anchor_, args...);
-    } catch (...) {
-      return;
-    }
-    AddList(anchor_->p_next, tmp.anchor_->p_next, tmp.anchor_->p_prev);
-    BindList(tmp.anchor_, tmp.anchor_);
-    size_ += tmp.size();
-  }
+  tmp.ArgumentParser(tmp.anchor_, std::forward<Types>(args)...);
+  if (!tmp.size()) return;
+  AddList(anchor_->p_next, tmp.anchor_->p_next, tmp.anchor_->p_prev);
+  BindList(tmp.anchor_, tmp.anchor_);
 }
 
 template <class T>
@@ -237,7 +267,7 @@ list<T> &list<T>::operator=(list &right) {
 }
 
 template <class T>
-list<T> &list<T>::operator=(list &&right) {
+list<T> &list<T>::operator=(list &&right) noexcept {
   swap(right);
   return *this;
 }
@@ -246,15 +276,9 @@ template <class T>
 template <class InputIterator>
 void list<T>::CopyList(InputIterator first, InputIterator last) {
   list tmp(std::distance(first, last));
-  if (tmp.size_) {
-    iterator begin1 = tmp.begin();
-    try {
-      while (first != last) *begin1++ = *first++;
-    } catch (...) {
-      return;
-    }
-    swap(tmp);
-  }
+  iterator begin = tmp.begin();
+  while (first != last) *begin++ = *first++;
+  swap(tmp);
 }
 
 template <class T>
@@ -263,7 +287,7 @@ void list<T>::merge(list<T> &right) {
   StructList<T> *next, *next_second;
   while (second != right.anchor_) {
     next = first->p_next;
-    if (first->value > second->value) {
+    if (first->value_ > second->value_) {
       next_second = second->p_next;
       AddValue(first, second);
       second = next_second;
@@ -275,23 +299,21 @@ void list<T>::merge(list<T> &right) {
       break;
     }
   }
-  size_ += right.size();
-  right.size_ = 1;
+  right.size_ = 0;
   right.anchor_->p_next = right.anchor_;
   right.anchor_->p_prev = right.anchor_;
 }
 
 template <class T>
 void list<T>::sort() {
-  int size = size_ - 1;
-  T tmp;
+  value_type tmp;
   StructList<T> *begin = anchor_->p_next->p_next;
-  for (int i = 1; i < size; i++) {
-    for (int j = 1; j <= size - i; j++) {
-      if (begin->value < begin->p_prev->value) {
-        tmp = begin->value;
-        begin->value = begin->p_prev->value;
-        begin->p_prev->value = tmp;
+  for (size_type i = 1; i < size_; i++) {
+    for (size_type j = 1; j <= size_ - i; j++) {
+      if (begin->value_ < begin->p_prev->value_) {
+        tmp = begin->value_;
+        begin->value_ = begin->p_prev->value_;
+        begin->p_prev->value_ = tmp;
       }
       begin = begin->p_next;
     }
@@ -300,9 +322,9 @@ void list<T>::sort() {
 }
 
 template <class T>
-void list<T>::reverse() {
+void list<T>::reverse() noexcept {
   StructList<T> *temporarily;
-  for (int i = 0; i < static_cast<int>(size_); i++) {
+  for (size_type i = 0; i < size_ + 1; i++) {
     temporarily = anchor_->p_next;
     anchor_->p_next = anchor_->p_prev;
     anchor_->p_prev = temporarily;
@@ -311,35 +333,24 @@ void list<T>::reverse() {
 }
 
 template <class T>
-void list<T>::splice(iterator position, list<T> &donor, iterator first,
-                     iterator last) {
-  int count_elements = std::distance(first, last);
-  StructList<T> *begin = first.address_->p_prev, *end = last.address_->p_prev;
-  BindList(begin, last.address_);
-  BindList(position.address_->p_prev, first.address_);
-  BindList(end, position.address_);
-  if (&donor.anchor_ != &anchor_) {
-    size_ += count_elements;
-    donor.size_ -= count_elements;
-  }
-}
-
-template <class T>
-void list<T>::splice(iterator position, list<T> &donor,
-                     iterator donor_position) {
-  if (position != donor_position) {
-    BindList(donor_position.address_->p_prev, donor_position.address_->p_next);
-    AddValue(position.address_, donor_position.address_);
+void list<T>::splice(const_iterator position, list<T> &donor,
+                     const_iterator donor_position) {
+  if (position != donor_position && donor.size()) {
+    iterator it = const_cast<StructList<T> *>(donor_position.address_);
+    BindList(it.address_->p_prev, it.address_->p_next);
+    AddValue(const_cast<StructList<T> *>(position.address_), it.address_);
     if (&donor.anchor_ != &anchor_) {
-      size_ += 1;
-      donor.size_ -= 1;
+      donor.size_--;
+    } else {
+      size_--;
     }
   }
 }
 
 template <class T>
 void list<T>::AddList(StructList<T> *position, StructList<T> *first,
-                      StructList<T> *last) {
+                      StructList<T> *last) noexcept {
+  size_ += std::distance(iterator(first), iterator(last)) + 1;
   StructList<T> *begin = position->p_prev;
   begin->p_next = first;
   first->p_prev = begin;
@@ -348,35 +359,25 @@ void list<T>::AddList(StructList<T> *position, StructList<T> *first,
 }
 
 template <class T>
-void list<T>::splice(iterator position, list<T> &donor) {
-  AddList(position.address_, donor.anchor_->p_next, donor.anchor_->p_prev);
-  size_ += donor.size();
-  donor.size_ = 1;
+void list<T>::splice(const_iterator position, list<T> &donor) {
+  if (!donor.size()) return;
+  AddList(const_cast<StructList<T> *>(position.address_), donor.anchor_->p_next,
+          donor.anchor_->p_prev);
+  donor.size_ = 0;
   donor.anchor_->p_next = donor.anchor_;
   donor.anchor_->p_prev = donor.anchor_;
 }
 
 template <class T>
-template <class BinaryPredicate>
-void list<T>::unique(BinaryPredicate pred) {
-  StructList<T> *begin = anchor_->p_next, *next;
-  while (begin != anchor_) {
-    next = begin->p_next;
-    if (pred(begin->value)) DeliteValue(begin);
-    begin = next;
-  }
-}
-
-template <class T>
 void list<T>::unique() {
   StructList<T> *begin = anchor_->p_next->p_next, *next;
-  T value = begin->p_prev->value;
+  value_type value = begin->p_prev->value_;
   while (begin != anchor_) {
     next = begin->p_next;
-    if (value == begin->value) {
+    if (value == begin->value_) {
       DeliteValue(begin);
     } else {
-      value = begin->value;
+      value = begin->value_;
     }
     begin = next;
   }
@@ -384,71 +385,57 @@ void list<T>::unique() {
 
 template <class T>
 template <class... Other>
-void list<T>::ArgumentParser(StructList<T> *position, T first, Other... other) {
-  StructList<T> *part = CreatePart();
-  part->value = first;
+void list<T>::ArgumentParser(StructList<T> *position, value_type &&first,
+                             Other... other) {
+  StructList<T> *part = new StructList<T>(std::move(first));
   AddValue(position, part);
-  ArgumentParser(position, other...);
+  ArgumentParser(position, std::forward<Other>(other)...);
 }
 
 template <class T>
 template <class... Types>
 typename list<T>::iterator list<T>::emplace(iterator position,
                                             Types &&...args) {
-  iterator result = position.address_->p_prev;
   list tmp;
-  try {
-    tmp.ArgumentParser(tmp.anchor_, args...);
-  } catch (...) {
-    return anchor_;
-  }
+  tmp.ArgumentParser(tmp.anchor_, std::forward<Types>(args)...);
+  if (!tmp.size()) return position;
+  iterator result = tmp.begin();
   AddList(position.address_, tmp.anchor_->p_next, tmp.anchor_->p_prev);
   BindList(tmp.anchor_, tmp.anchor_);
-  size_ += tmp.size();
   return result;
 }
 
 template <class T>
 void list<T>::clear() {
-  DeliteList(anchor_->p_next, anchor_);
+  if (size()) DeliteList(anchor_->p_next, anchor_);
 }
 
 template <class T>
-void list<T>::resize(size_t new_size, T value) {
-  size_t size_our = size();
+void list<T>::resize(size_type new_size, value_type value) {
+  size_type size_our = size();
   if (size_our < new_size) {
     list tmp(new_size - size_our, value);
     if (tmp.size()) insert(anchor_, tmp.begin(), tmp.end());
   } else if (size_our > new_size) {
-    for (int i = 0; i < static_cast<int>(size_our - new_size); i++) {
+    for (size_type i = 0; i < size_our - new_size; i++) {
       DeliteValue(anchor_->p_prev);
     }
   }
 }
 
 template <class T>
-template <class Predicate>
-void list<T>::remove_if(Predicate pred) {
+void list<T>::remove(const_reference value) {
   StructList<T> *begin = anchor_->p_next, *next;
   while (begin != anchor_) {
     next = begin;
     begin = begin->p_next;
-    if (pred(next->value)) DeliteValue(next);
+    if (next->value_ == value) DeliteValue(next);
   }
 }
 
 template <class T>
-void list<T>::remove(const T &value) {
-  StructList<T> *begin = anchor_->p_next, *next;
-  while (begin != anchor_) {
-    next = begin;
-    begin = begin->p_next;
-    if (next->value == value) DeliteValue(next);
-  }
-}
-
-template <class T>
-void list<T>::FreeMemoryList(StructList<T> *first, StructList<T> *last) {
+void list<T>::FreeMemoryList(StructList<T> *first,
+                             StructList<T> *last) noexcept {
   StructList<T> *next;
   while (first != last) {
     next = first->p_next;
@@ -486,60 +473,43 @@ typename list<T>::iterator list<T>::erase(iterator where) {
 template <class T>
 template <class InputIterator>
 void list<T>::insert(iterator where, InputIterator first, InputIterator last) {
+  if (first == last) return;
   list tmp(first, last);
-  if (tmp.size()) {
-    AddList(where.address_, tmp.anchor_->p_next, tmp.anchor_->p_prev);
-    BindList(tmp.anchor_, tmp.anchor_);
-    size_ += tmp.size();
-  }
+  AddList(where.address_, tmp.anchor_->p_next, tmp.anchor_->p_prev);
+  BindList(tmp.anchor_, tmp.anchor_);
 }
 
 template <class T>
 typename list<T>::iterator list<T>::insert(iterator where,
                                            std::initializer_list<T> init_list) {
-  StructList<T> *result = where.address_->p_prev;
+  if (!init_list.size()) return where;
   list tmp(init_list);
-  if (tmp.size()) {
-    AddList(where.address_, tmp.anchor_->p_next, tmp.anchor_->p_prev);
-    BindList(tmp.anchor_, tmp.anchor_);
-    size_ += tmp.size();
-    return result->p_next;
-  }
-  return anchor_->p_next;
+  iterator result = tmp.begin();
+  AddList(where.address_, tmp.anchor_->p_next, tmp.anchor_->p_prev);
+  BindList(tmp.anchor_, tmp.anchor_);
+  return result;
 }
 
 template <class T>
-typename list<T>::iterator list<T>::insert(iterator where, size_t count,
-                                           const T &value) {
-  StructList<T> *result = where.address_->p_prev;
+void list<T>::insert(iterator where, size_type count, const_reference value) {
+  if (!count) return;
   list tmp(count, value);
-  if (tmp.size()) {
-    AddList(where.address_, tmp.anchor_->p_next, tmp.anchor_->p_prev);
-    BindList(tmp.anchor_, tmp.anchor_);
-    size_ += tmp.size();
-    return result->p_next;
-  }
-  return anchor_->p_next;
+  AddList(where.address_, tmp.anchor_->p_next, tmp.anchor_->p_prev);
+  BindList(tmp.anchor_, tmp.anchor_);
 }
 
 template <class T>
-typename list<T>::iterator list<T>::insert(iterator where, const T &value) {
-  size_t size_before = size_;
-  StructList<T> *element = CreatePart();
-  if (size_before == size_) return begin();
-  element->value = value;
+typename list<T>::iterator list<T>::insert(iterator where,
+                                           const_reference value) {
+  StructList<T> *element = new StructList<T>(value);
   AddValue(where.address_, element);
   return element;
 }
 
 template <class T>
-void list<T>::push_front(const T &value) {
-  size_t size_before = size_;
-  StructList<T> *part = CreatePart();
-  if (size_before < size_) {
-    part->value = value;
-    AddValue(anchor_->p_next, part);
-  }
+void list<T>::push_front(const_reference value) {
+  StructList<T> *part = new StructList<T>(value);
+  AddValue(anchor_->p_next, part);
 }
 
 template <class T>
@@ -549,10 +519,12 @@ void list<T>::AddValue(StructList<T> *position, StructList<T> *value) {
   value->p_prev = begin;
   value->p_next = position;
   position->p_prev = value;
+  size_++;
 }
 
 template <class T>
-void list<T>::BindList(StructList<T> *begin, StructList<T> *end) const {
+void list<T>::BindList(StructList<T> *begin,
+                       StructList<T> *end) const noexcept {
   begin->p_next = end;
   end->p_prev = begin;
 }
@@ -577,37 +549,33 @@ void list<T>::pop_front() {
 }
 
 template <class T>
-void list<T>::push_back(const T &value) {
-  size_t size_before = size_;
-  StructList<T> *part = CreatePart();
-  if (size_before < size_) {
-    part->value = value;
-    AddToEnd(part);
-  }
+void list<T>::push_back(const_reference value) {
+  StructList<T> *part = new StructList<T>(value);
+  AddToEnd(part);
 }
 
 template <class T>
-const T &list<T>::back() const {
-  return anchor_->p_prev->value;
+typename list<T>::const_reference list<T>::back() const noexcept {
+  return anchor_->p_prev->value_;
 }
 
 template <class T>
-T &list<T>::back() {
-  return anchor_->p_prev->value;
+typename list<T>::reference list<T>::back() noexcept {
+  return anchor_->p_prev->value_;
 }
 
 template <class T>
-const T &list<T>::front() const {
-  return anchor_->p_next->value;
+typename list<T>::const_reference list<T>::front() const noexcept {
+  return anchor_->p_next->value_;
 }
 
 template <class T>
-T &list<T>::front() {
-  return anchor_->p_next->value;
+typename list<T>::reference list<T>::front() noexcept {
+  return anchor_->p_next->value_;
 }
 
 template <class T>
-void list<T>::swap(list &other) {
+void list<T>::swap(list &other) noexcept {
   std::swap(anchor_, other.anchor_);
   std::swap(size_, other.size_);
 }
@@ -615,33 +583,34 @@ void list<T>::swap(list &other) {
 template <class T>
 void list<T>::assign(std::initializer_list<T> init_list) {
   list tmp(init_list);
-  if (tmp.size_) swap(tmp);
+  swap(tmp);
 }
 
 template <class T>
 template <class InputIterator>
 void list<T>::assign(InputIterator first, InputIterator last) {
   list tmp(first, last);
-  if (tmp.size_) swap(tmp);
+  swap(tmp);
 }
 
 template <class T>
-void list<T>::assign(size_t count, T value) {
+void list<T>::assign(size_type count, value_type value) {
   list tmp(count, value);
-  if (tmp.size_) swap(tmp);
+  swap(tmp);
 }
 
 template <class T>
-bool list<T>::empty() const {
+bool list<T>::empty() const noexcept {
   return !size();
 }
 
 template <class T>
 int list<T>::ComparisonList(const list &other) const {
-  int res = 0, size1 = size(), size2 = other.size();
+  int res = 0;
+  size_type size1 = size(), size2 = other.size();
   const_iterator our_it = begin();
   const_iterator other_it = other.begin();
-  for (int i = 0; i < size1 && i < size2; i++, our_it++, other_it++) {
+  for (size_type i = 0; i < size1 && i < size2; i++, our_it++, other_it++) {
     if (*our_it != *other_it) {
       res = *our_it > *other_it ? 1 : -1;
       break;
@@ -652,87 +621,33 @@ int list<T>::ComparisonList(const list &other) const {
 }
 
 template <class T>
-typename list<T>::iterator list<T>::end() {
+typename list<T>::iterator list<T>::end() noexcept {
   return anchor_;
 }
 
 template <class T>
-typename list<T>::const_iterator list<T>::end() const {
+typename list<T>::const_iterator list<T>::end() const noexcept {
   return anchor_;
 }
 
 template <class T>
-typename list<T>::const_iterator list<T>::cend() const {
+typename list<T>::const_iterator list<T>::cend() const noexcept {
   return anchor_;
 }
 
 template <class T>
-typename list<T>::iterator list<T>::begin() {
+typename list<T>::iterator list<T>::begin() noexcept {
   return anchor_->p_next;
 }
 
 template <class T>
-typename list<T>::const_iterator list<T>::begin() const {
+typename list<T>::const_iterator list<T>::begin() const noexcept {
   return static_cast<const_iterator>(anchor_->p_next);
 }
 
 template <class T>
-typename list<T>::const_iterator list<T>::cbegin() const {
+typename list<T>::const_iterator list<T>::cbegin() const noexcept {
   return static_cast<const_iterator>(anchor_->p_next);
-}
-
-template <class T>
-typename list<T>::reverse_iterator list<T>::rend() {
-  return static_cast<reverse_iterator>(anchor_->p_next);
-}
-
-template <class T>
-typename list<T>::const_reverse_iterator list<T>::rend() const {
-  return static_cast<const_reverse_iterator>(anchor_->p_next);
-}
-
-template <class T>
-typename list<T>::const_reverse_iterator list<T>::crend() const {
-  return static_cast<const_reverse_iterator>(anchor_->p_next);
-}
-
-template <class T>
-typename list<T>::reverse_iterator list<T>::rbegin() {
-  return static_cast<reverse_iterator>(anchor_);
-}
-
-template <class T>
-typename list<T>::const_reverse_iterator list<T>::rbegin() const {
-  return static_cast<const_reverse_iterator>(anchor_);
-}
-
-template <class T>
-typename list<T>::const_reverse_iterator list<T>::crbegin() const {
-  return static_cast<const_reverse_iterator>(anchor_);
-}
-
-template <class T>
-bool list<T>::CreateList(const size_t count) {
-  CreateAnchor();
-  if (size_) {
-    for (int i = 1; i <= static_cast<int>(count); i++) {
-      StructList<T> *part = CreatePart();
-      if (static_cast<int>(size_) > i) {
-        AddToEnd(part);
-      } else {
-        return true;
-      }
-    }
-  } else {
-    return true;
-  }
-  return false;
-}
-
-template <class T>
-list<T>::list(std::initializer_list<T> init_list) {
-  if (!CreateList(init_list.size()) && FillList(init_list))
-    FreeMemoryList(anchor_, anchor_->p_prev);
 }
 
 template <class T>
@@ -741,53 +656,54 @@ list<T>::list(const list &right) {
 }
 
 template <class T>
-list<T>::list(list &&right) : list() {
+list<T>::list(list &&right) noexcept : list() {
   swap(right);
 }
 
 template <class T>
-list<T>::list(int count) {
-  CreateList(count);
-}
-
-template <class T>
-list<T>::list(size_t count, T value) {
-  if (!CreateList(count) && FillList(value))
+list<T>::list(std::initializer_list<T> init_list) {
+  CreateAnchor();
+  auto it = init_list.begin();
+  try {
+    for (size_type i = 1; i <= init_list.size(); i++)
+      AddToEnd(new StructList<T>(*it++));
+  } catch (...) {
     FreeMemoryList(anchor_, anchor_->p_prev);
+    throw;
+  }
 }
 
 template <class T>
-bool list<T>::FillList(T value) {
-  iterator begin = anchor_->p_next;
+list<T>::list(size_type count) {
+  CreateAnchor();
   try {
-    while (begin != anchor_) *begin++ = value;
+    for (size_type i = 1; i <= count; i++) AddToEnd(new StructList<T>(T()));
   } catch (...) {
-    return true;
+    FreeMemoryList(anchor_, anchor_->p_prev);
+    throw;
   }
-  return false;
 }
 
 template <class T>
-bool list<T>::FillList(std::initializer_list<T> init_list) {
-  iterator begin = anchor_->p_next;
-  T *ptr = (T *)init_list.begin();
+list<T>::list(size_type count, value_type value) {
+  CreateAnchor();
   try {
-    for (; begin != anchor_; begin++, ptr++) *begin = *ptr;
+    for (size_type i = 1; i <= count; i++) AddToEnd(new StructList<T>(value));
   } catch (...) {
-    return true;
+    FreeMemoryList(anchor_, anchor_->p_prev);
+    throw;
   }
-  return false;
 }
 
 template <class T>
 void list<T>::CreateAnchor() {
-  anchor_ = CreatePart();
+  anchor_ = new StructList<T>(T());
   anchor_->p_next = anchor_;
   anchor_->p_prev = anchor_;
 }
 
 template <class T>
-list<T>::~list() {
+list<T>::~list() noexcept {
   if (anchor_) FreeMemoryList(anchor_, anchor_->p_prev);
 }
 
@@ -798,26 +714,20 @@ void list<T>::AddToEnd(StructList<T> *value) {
   value->p_prev = end;
   value->p_next = anchor_;
   anchor_->p_prev = value;
-}
-
-template <class T>
-size_t list<T>::size() const {
-  return size_ - 1;
-}
-
-template <class T>
-StructList<T> *list<T>::CreatePart() {
-  StructList<T> *res;
-  try {
-    res = new StructList<T>;
-  } catch (...) {
-    return nullptr;
-  }
   size_++;
-  res->p_next = nullptr;
-  res->p_prev = nullptr;
-  return res;
+}
+
+template <class T>
+typename list<T>::size_type list<T>::size() const noexcept {
+  return size_;
+}
+
+template <class T>
+typename list<T>::size_type list<T>::max_size() const noexcept {
+  return std::numeric_limits<size_type>::max() / 2 /
+             sizeof(StructList<value_type>) -
+         1;
 }
 
 }  // namespace s21
-#endif  // CONTAINERS_SRC_LIST_H_
+#endif  // S21_CONTAINERS_SRC_LIST_H_

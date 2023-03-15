@@ -1,10 +1,14 @@
-#ifndef CONTAINERS_SRC_STACK_H_
-#define CONTAINERS_SRC_STACK_H_
+#ifndef S21_CONTAINERS_SRC_STACK_H_
+#define S21_CONTAINERS_SRC_STACK_H_
 
-#include <stdlib.h>
+// 1) Т.к. в основном всё зависит от list - пофиксите list и тут скорее всего
+// всё будет ок 2) emplace надо грамотно перенаправить в используемый контейнер,
+// сейчас не так 3) Не реализовали stack(std::initializer_list<value_type> const
+// &items) - а по заданию надо 4) Не реализовали void swap(stack& other) - а по
+// заданию надо
 
 #include <iostream>
-using namespace std;
+
 #include "./s21_list.h"
 #include "./s21_vector.h"
 
@@ -12,21 +16,33 @@ namespace s21 {
 template <class T, class Container = list<T>>
 class stack {
  public:
-  stack() {}
+  using value_type = T;
+  using reference = T &;
+  using const_reference = const T &;
+  using size_type = size_t;
+
+  stack() = default;
+  stack(std::initializer_list<value_type> const &items);
+  void swap(stack& other) noexcept;
   template <class ContainerOther>
   stack(const ContainerOther &right);
-  bool empty() const;
+  bool empty() const noexcept;
   void pop();
-  void push(const T &value);
-  size_t size() const;
-  T &top();
-  const T &top() const;
+  void push(const_reference value);
+  size_t size() const noexcept;
+  reference top();
+  const_reference top() const;
   template <class... Types>
   void emplace_front(Types &&...args);
 
  private:
   Container stack_;
 };
+
+template <class T, class Container>
+void stack<T, Container>::swap(stack& other) noexcept {
+  return stack_.swap(other.stack_);
+}
 
 template <class T, class Container>
 template <class ContainerOther>
@@ -40,35 +56,38 @@ void stack<T, Container>::pop() {
 }
 
 template <class T, class Container>
-void stack<T, Container>::push(const T &value) {
+stack<T, Container>::stack(std::initializer_list<value_type> const &items) : stack_(items) {}
+
+template <class T, class Container>
+void stack<T, Container>::push(const_reference value) {
   stack_.push_back(value);
 }
 
 template <class T, class Container>
-size_t stack<T, Container>::size() const {
+size_t stack<T, Container>::size() const noexcept {
   return stack_.size();
 }
 
 template <class T, class Container>
-T &stack<T, Container>::top() {
+typename stack<T, Container>::reference stack<T, Container>::top() {
   return stack_.back();
 }
 
 template <class T, class Container>
-const T &stack<T, Container>::top() const {
+typename stack<T, Container>::const_reference stack<T, Container>::top() const {
   return stack_.back();
 }
 
 template <class T, class Container>
 template <class... Types>
 void stack<T, Container>::emplace_front(Types &&...args) {
-  stack_.emplace_front(args...);
+  stack_.emplace_front(std::forward<Types>(args)...);
 }
 
 template <class T, class Container>
-bool stack<T, Container>::empty() const {
+bool stack<T, Container>::empty() const noexcept {
   return stack_.empty();
 }
 
 }  // namespace s21
-#endif  // CONTAINERS_SRC_STACK_H_
+#endif  // S21_CONTAINERS_SRC_STACK_H_

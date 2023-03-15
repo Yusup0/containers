@@ -1,66 +1,65 @@
-#ifndef CONTAINERS_SRC_ARRAY_H_
-#define CONTAINERS_SRC_ARRAY_H_
+#ifndef S21_CONTAINERS_SRC_ARRAY_H_
+#define S21_CONTAINERS_SRC_ARRAY_H_
 
 #include <stdlib.h>
 
 #include <iostream>
 #include <iterator>
 
-namespace s21 {git 
+namespace s21 {
 
 template <class T, size_t N>
 class array {
  public:
   using iterator = T *;
   using const_iterator = const T *;
-  using reverse_iterator = std::reverse_iterator<iterator>;
-  using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
+  using value_type = T;
+  using reference = T &;
+  using const_reference = const T &;
   using size_type = size_t;
 
   array(std::initializer_list<T> init_list);
-  array() { ptr_ = new T[N]; }
-  array(const array &right) { CopyPtr(right); }
-  array(array &&other);
+  array() = default;
+  array(const array &right) {
+    for (size_type i = 0; i < N; i++) ptr_[i] = right.ptr_[i];
+  }
+  array(array &&other) noexcept;
   array &operator=(const array &right);
-  array &operator=(array &&right);
-  ~array();
-  T &operator[](const size_type n);
-  const T &operator[](const size_type n) const;
+  array &operator=(array &&right) noexcept;
+  ~array() noexcept = default;
+  reference operator[](const size_type n);
+  const_reference operator[](const size_type n) const;
   iterator begin() noexcept;
   const_iterator begin() const noexcept;
   const_iterator cbegin() const noexcept;
   iterator end() noexcept;
   const_iterator end() const noexcept;
   const_iterator cend() const noexcept;
-  reverse_iterator rbegin() noexcept;
-  const_reverse_iterator rbegin() const noexcept;
-  const_reverse_iterator crbegin() const noexcept;
-  reverse_iterator rend() noexcept;
-  const_reverse_iterator rend() const noexcept;
-  const_reverse_iterator crend() const noexcept;
-  T &at(size_type position);
-  const T &at(size_type position) const;
-  T &back();
-  const T &back() const;
-  T &front();
-  const T &front() const;
+  reference at(size_type position);
+  const_reference at(size_type position) const;
+  reference back();
+  const_reference back() const;
+  reference front();
+  const_reference front() const;
   T *data();
   const T *data() const;
   constexpr bool empty() const;
-  void fill(const T &value);
+  void fill(const_reference value);
   constexpr size_type size() const;
+  constexpr size_type max_size() const;
   void swap(array &right);
 
  private:
-  T *ptr_;
-  void CopyPtr(const array &other);
+  value_type ptr_[N + 1] = {};
   void CopyList(std::initializer_list<T> init_list);
 };
 
 template <class T, size_t N>
 void array<T, N>::swap(array &right) {
-  std::swap(ptr_, right.ptr_);
+  array<value_type, N> tmp = std::move(right);
+  right = std::move(*this);
+  *this = std::move(tmp);
 }
 
 template <class T, size_t N>
@@ -69,29 +68,35 @@ constexpr typename array<T, N>::size_type array<T, N>::size() const {
 }
 
 template <class T, size_t N>
-const T &array<T, N>::front() const {
+constexpr typename array<T, N>::size_type array<T, N>::max_size() const {
+  return N;
+}
+
+template <class T, size_t N>
+typename array<T, N>::const_reference array<T, N>::front() const {
   return *ptr_;
 }
 
 template <class T, size_t N>
-T &array<T, N>::front() {
+typename array<T, N>::reference array<T, N>::front() {
   return *ptr_;
 }
 
 template <class T, size_t N>
-T &array<T, N>::at(size_type position) {
+typename array<T, N>::reference array<T, N>::at(size_type position) {
   if (N <= position) throw std::out_of_range("going outside the array");
   return *(ptr_ + position);
 }
 
 template <class T, size_t N>
-const T &array<T, N>::at(size_type position) const {
+typename array<T, N>::const_reference array<T, N>::at(
+    size_type position) const {
   if (N <= position) throw std::out_of_range("going outside the array");
   return *(ptr_ + position);
 }
 
 template <class T, size_t N>
-void array<T, N>::fill(const T &value) {
+void array<T, N>::fill(const_reference value) {
   array tmp;
   for (size_type i = 0; i < N; i++) tmp.ptr_[i] = value;
   swap(tmp);
@@ -113,30 +118,30 @@ T *array<T, N>::data() {
 }
 
 template <class T, size_t N>
-T &array<T, N>::back() {
+typename array<T, N>::reference array<T, N>::back() {
   return *(ptr_ + N - 1);
 }
 
 template <class T, size_t N>
-const T &array<T, N>::back() const {
+typename array<T, N>::const_reference array<T, N>::back() const {
   return *(ptr_ + N - 1);
 }
 
 template <class T, size_t N>
 void array<T, N>::CopyList(std::initializer_list<T> init_list) {
-  ptr_ = new T[N];
   auto it = init_list.begin();
-  try {
-    for (size_type i = 0; i < init_list.size(); i++) ptr_[i] = *it++;
-  } catch (...) {
-    delete[] ptr_;
-    throw;
-  }
+  for (size_type i = 0; i < init_list.size(); i++) ptr_[i] = *it++;
 }
 
+// Еще после отказа от динамисечкой памяти очень рекомнедую проверить случаи:
+// 1) Создание массива размера 0, -1
+// 2) Работу begin() / end() при размере 1 и как работает проход по массиву
+// Уверен, что там есть какие-то тонкости (хотя я сам не делал и не знаю этого)
+// + почитайте документацию на array, такое ощущение, что вы гадали, как это
+// работает, а не по доке делали
 template <class T, size_t N>
-array<T, N>::array(array &&other) : array() {
-  swap(other);
+array<T, N>::array(array &&other) noexcept {
+  for (size_type i = 0; i < N; i++) ptr_[i] = std::move(other.ptr_[i]);
 }
 
 template <class T, size_t N>
@@ -146,65 +151,25 @@ array<T, N>::array(std::initializer_list<T> init_list) {
 
 template <class T, size_t N>
 array<T, N> &array<T, N>::operator=(const array<T, N> &right) {
-  T *tmp = ptr_;
-  CopyPtr(right);
-  delete[] tmp;
+  for (size_type i = 0; i < N; i++) ptr_[i] = right.ptr_[i];
   return *this;
 }
 
 template <class T, size_t N>
-array<T, N> &array<T, N>::operator=(array<T, N> &&right) {
-  swap(right);
+array<T, N> &array<T, N>::operator=(array<T, N> &&right) noexcept {
+  for (size_type i = 0; i < N; i++) ptr_[i] = std::move(right.ptr_[i]);
   return *this;
 }
 
 template <class T, size_t N>
-array<T, N>::~array() {
-  delete[] ptr_;
-}
-
-template <class T, size_t N>
-T &array<T, N>::operator[](const size_type n) {
+typename array<T, N>::reference array<T, N>::operator[](const size_type n) {
   return *(ptr_ + n);
 }
 
 template <class T, size_t N>
-const T &array<T, N>::operator[](const size_type n) const {
+typename array<T, N>::const_reference array<T, N>::operator[](
+    const size_type n) const {
   return *(ptr_ + n);
-}
-
-template <class T, size_t N>
-typename array<T, N>::reverse_iterator array<T, N>::rend() noexcept {
-  return static_cast<reverse_iterator>(begin());
-}
-
-template <class T, size_t N>
-typename array<T, N>::const_reverse_iterator array<T, N>::rend()
-    const noexcept {
-  return static_cast<const_reverse_iterator>(begin());
-}
-
-template <class T, size_t N>
-typename array<T, N>::const_reverse_iterator array<T, N>::crend()
-    const noexcept {
-  return static_cast<const_reverse_iterator>(begin());
-}
-
-template <class T, size_t N>
-typename array<T, N>::const_reverse_iterator array<T, N>::rbegin()
-    const noexcept {
-  return static_cast<const_reverse_iterator>(end());
-}
-
-template <class T, size_t N>
-typename array<T, N>::const_reverse_iterator array<T, N>::crbegin()
-    const noexcept {
-  return static_cast<const_reverse_iterator>(end());
-}
-
-template <class T, size_t N>
-typename array<T, N>::reverse_iterator array<T, N>::rbegin() noexcept {
-  return static_cast<reverse_iterator>(end());
 }
 
 template <class T, size_t N>
@@ -237,15 +202,5 @@ typename array<T, N>::const_iterator array<T, N>::cbegin() const noexcept {
   return static_cast<const_iterator>(ptr_);
 }
 
-template <class T, size_t N>
-void array<T, N>::CopyPtr(const array &other) {
-  ptr_ = new T[N];
-  try {
-    for (size_type i = 0; i < N; i++) ptr_[i] = other.ptr_[i];
-  } catch (...) {
-    delete[] ptr_;
-    throw;
-  }
-}
 }  // namespace s21
-#endif  // CONTAINERS_SRC_ARRAY_H_
+#endif  // S21_CONTAINERS_SRC_ARRAY_H_

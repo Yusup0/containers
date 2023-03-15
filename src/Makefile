@@ -13,7 +13,7 @@ all: test
 
 test: clean gcov_obj/containers_test.o
 	$(CC) gcov_obj/containers_test.o -o $@ $(LDFLAGS) $(GCOVFLAGS)
-	./test
+	valgrind ./test
 
 gcov_report: rebuild
 	lcov -c -d gcov_obj/. -o gcov_obj/coverage.info

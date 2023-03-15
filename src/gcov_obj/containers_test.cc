@@ -4,7 +4,32 @@
 #include "../s21_containersplus.h"
 using namespace s21;
 
+template <class Container_first, class Container_second>
+int Comparison(Container_first first, Container_second second) {
+  int res = 0;
+  size_t size1 = first.size(), size2 = second.size();
+  auto first_it = first.begin();
+  auto second_it = second.begin();
+  for (size_t i = 0; i < size1 && i < size2; i++, first_it++, second_it++) {
+    if (*first_it != *second_it) {
+      res = *first_it > *second_it ? 1 : -1;
+      break;
+    }
+  }
+  if (!res && size1 != size2) res = size1 > size2 ? 1 : -1;
+  return res;
+}
+
 TEST(queue, list) {
+  s21::queue<std::string> st1 = {"7", "123", "333"};
+  s21::queue<std::string> st2;
+  EXPECT_EQ("333", st1.back());
+  st1.push("3312");
+  EXPECT_EQ("3312",  st1.back());
+  st1.swap(st2);
+  EXPECT_EQ("3312",  st2.back());
+  EXPECT_EQ(static_cast<size_t>(4), st2.size());
+
   s21::list<std::string> li = {"7"};
   s21::queue<std::string> st(li);
   EXPECT_EQ(false, st.empty());
@@ -28,6 +53,19 @@ TEST(queue, list) {
 }
 
 TEST(queue, vector) {
+  s21::queue<std::string, s21::vector<std::string>> st1 = {"7", "123", "333"};
+  s21::queue<std::string, s21::vector<std::string>> st2;
+  EXPECT_EQ("333", st1.back());
+  st1.push("3312");
+  EXPECT_EQ("3312",  st1.back());
+  st1.swap(st2);
+  EXPECT_EQ("3312",  st2.back());
+  EXPECT_EQ(static_cast<size_t>(4), st2.size());
+
+  const s21::queue<std::string, s21::vector<std::string>> st3 = {"7", "123", "333"};
+  EXPECT_EQ("333", st3.back());
+  EXPECT_EQ("7", st3.front());
+
   s21::vector<std::string> li = {"7"};
   s21::queue<std::string, s21::vector<std::string>> st(li);
   EXPECT_EQ(false, st.empty());
@@ -51,8 +89,17 @@ TEST(queue, vector) {
 }
 
 TEST(stack, list) {
+  s21::stack<std::string> st1 = {"7", "123", "333"};
+  s21::stack<std::string> st2;
+  EXPECT_EQ("333", st1.top());
+  st1.push("3312");
+  EXPECT_EQ("3312",  st1.top());
+  st1.swap(st2);
+  EXPECT_EQ("3312",  st2.top());
+  EXPECT_EQ(static_cast<size_t>(4), st2.size());
+  
   s21::list<std::string> li = {"7"};
-  s21::stack<std::string, s21::vector<std::string>> st(li);
+  s21::stack<std::string, s21::list<std::string>> st(li);
   EXPECT_EQ(false, st.empty());
   EXPECT_EQ(1, static_cast<int>(st.size()));
   st.pop();
@@ -74,6 +121,18 @@ TEST(stack, list) {
 }
 
 TEST(stack, vector) {
+  s21::stack<std::string, s21::vector<std::string>> st1 = {"7", "123", "333"};
+  s21::stack<std::string, s21::vector<std::string>> st2;
+  EXPECT_EQ("333", st1.top());
+  st1.push("3312");
+  EXPECT_EQ("3312",  st1.top());
+  st1.swap(st2);
+  EXPECT_EQ("3312",  st2.top());
+  EXPECT_EQ(static_cast<size_t>(4), st2.size());
+
+  const s21::stack<std::string, s21::vector<std::string>> st3 = {"7", "123", "333"};
+  EXPECT_EQ("333", st3.top());
+
   s21::vector<std::string> ve = {"7"};
   s21::stack<std::string, s21::vector<std::string>> st(ve);
   EXPECT_EQ(false, st.empty());
@@ -86,8 +145,7 @@ TEST(stack, vector) {
   EXPECT_EQ("312", st.top());
   st.pop();
   EXPECT_EQ("123", st.top());
-  EXPECT_EQ(false, st.empty());
-  EXPECT_EQ(1, static_cast<int>(st.size()));
+  EXPECT_EQ(false, st.empty());  EXPECT_EQ(1, static_cast<int>(st.size()));
   st.emplace_front("3333");
   EXPECT_EQ(2, static_cast<int>(st.size()));
   EXPECT_EQ("123", st.top());
@@ -102,88 +160,87 @@ TEST(map, test_iq) {
   a1 = a2;
   s21::map<int, std::string>::iterator it = a1.begin();
   s21::map<int, std::string>::iterator it1 = a2.begin();
-  EXPECT_EQ("12", it.second());
+  EXPECT_EQ("12", (*it).second);
   it++;
-  EXPECT_EQ("22", it.second());
+  EXPECT_EQ("22", (*it).second);
   it++;
-  EXPECT_EQ("32", it.second());
-  EXPECT_EQ("12", it1.second());
+  EXPECT_EQ("32", (*it).second);
+  EXPECT_EQ("12", (*it1).second);
   it1++;
-  EXPECT_EQ("22", it1.second());
+  EXPECT_EQ("22", (*it1).second);
   it1++;
-  EXPECT_EQ("32", it1.second());
+  EXPECT_EQ("32", (*it1).second);
 }
 
 TEST(map, iterator) {
   s21::map<int, std::string> a1 = {{1, "1"}, {2, "2"}, {3, "3"}};
   s21::map<int, std::string>::iterator it = a1.begin();
   s21::map<int, std::string>::iterator it1 = a1.begin();
-  EXPECT_EQ("1", *it++);
-  EXPECT_EQ("3", *++it);
-  EXPECT_EQ("2", *--it);
-  EXPECT_EQ("2", *it--);
-  EXPECT_EQ("1", *it++);
-  EXPECT_EQ("2", *it);
-  EXPECT_EQ(true, it != it1);
-  EXPECT_EQ(true, --it == it1);
-}
-
-TEST(map, reverse_iterator) {
-  s21::map<int, std::string> a1 = {{1, "1"}, {2, "2"}, {3, "3"}};
-  s21::map<int, std::string>::reverse_iterator it = a1.rbegin();
-  s21::map<int, std::string>::reverse_iterator it1 = a1.rbegin();
-  EXPECT_EQ("3", *it++);
-  EXPECT_EQ("1", *++it);
-  EXPECT_EQ("2", *--it);
-  EXPECT_EQ("2", *it--);
-  EXPECT_EQ("3", *it++);
-  EXPECT_EQ("2", *it);
+  EXPECT_EQ("1", (*it++).second);
+  EXPECT_EQ("3", (*++it).second);
+  EXPECT_EQ("2", (*--it).second);
+  EXPECT_EQ("2", (*it--).second);
+  EXPECT_EQ("1", (*it++).second);
+  EXPECT_EQ("2", (*it).second);
   EXPECT_EQ(true, it != it1);
   EXPECT_EQ(true, --it == it1);
 }
 
 TEST(map, erase) {
   s21::map<int, std::string> a1 = {{1, "1"}, {2, "2"}, {3, "3"}, {4, "4"},
-                                   {5, "5"}, {6, "6"}, {7, "7"}, {8, "8"}};
-  s21::map<int, std::string>::iterator it = a1.begin();
-  it = a1.erase(it);
-  EXPECT_EQ("2", *it);
-  it = a1.erase(it);
-  it++;
-  it++;
-  it = a1.erase(it);
-  EXPECT_EQ("6", *it);
+                                   {5, "5"}, {6, "6"}, {7, "7"}, {8, "8"}, {9, "9"}, {10, "10"}, {11, "11"}, {12, "12"}, {13, "13"}, {14, "14"}, {15, "15"}, {16, "16"}};
 
-  s21::map<int, int> a2 = {{1, 1}, {2, 2}, {3, 3}, {4, 4},
-                           {5, 5}, {6, 6}, {7, 7}, {8, 8}};
-  s21::map<int, int>::iterator it2 = a2.begin();
-  it2 = a2.erase(it2);
-  EXPECT_EQ(2, *it2);
-  it2 = a2.erase(it2);
-  it2++;
-  it2++;
-  it2 = a2.erase(it2);
-  EXPECT_EQ(6, *it2);
-  EXPECT_EQ(5, static_cast<int>(a2.size()));
+std::map<int, std::string> a2 = {{1, "1"}, {2, "2"}, {3, "3"}, {4, "4"},
+                                   {5, "5"}, {6, "6"}, {7, "7"}, {8, "8"}, {9, "9"}, {10, "10"}, {11, "11"}, {12, "12"}, {13, "13"}, {14, "14"}, {15, "15"}, {16, "16"}};
+a1.erase(a1.find(1));
+a2.erase(a2.find(1));
+EXPECT_EQ(0, Comparison(a1, a2));
+a1.erase(a1.find(12));
+a2.erase(a2.find(12));
+EXPECT_EQ(0, Comparison(a1, a2));
+a1.erase(a1.find(15));
+a2.erase(a2.find(15));
+EXPECT_EQ(0, Comparison(a1, a2));
+a1.erase(a1.find(7));
+a2.erase(a2.find(7));
+EXPECT_EQ(0, Comparison(a1, a2));
+a1.erase(a1.find(5));
+a2.erase(a2.find(5));
+EXPECT_EQ(0, Comparison(a1, a2));
+a1.erase(a1.find(6));
+a2.erase(a2.find(6));
+EXPECT_EQ(0, Comparison(a1, a2));
+a1.erase(a1.find(3));
+a2.erase(a2.find(3));
+EXPECT_EQ(0, Comparison(a1, a2));
+a1.erase(a1.find(10));
+a2.erase(a2.find(10));
+EXPECT_EQ(0, Comparison(a1, a2));
+a1.erase(a1.find(11));
+a2.erase(a2.find(11));
+EXPECT_EQ(0, Comparison(a1, a2));
+a1.erase(a1.find(2));
+a2.erase(a2.find(2));
+EXPECT_EQ(0, Comparison(a1, a2));
+a1.erase(a1.find(4));
+a2.erase(a2.find(4));
+EXPECT_EQ(0, Comparison(a1, a2));
+a1.erase(a1.find(9));
+a2.erase(a2.find(9));
+EXPECT_EQ(0, Comparison(a1, a2));
+a1.erase(a1.find(8));
+a2.erase(a2.find(8));
+EXPECT_EQ(0, Comparison(a1, a2));
+a1.erase(a1.find(14));
+a2.erase(a2.find(14));
+EXPECT_EQ(0, Comparison(a1, a2));
+a1.erase(a1.find(13));
+a2.erase(a2.find(13));
+EXPECT_EQ(0, Comparison(a1, a2));
+a1.erase(a1.find(16));
+a2.erase(a2.find(16));
+EXPECT_EQ(0, Comparison(a1, a2));
 
-  s21::map<int, int> a3 = {{1, 1}, {2, 2}, {3, 3}, {4, 4},
-                           {5, 5}, {6, 6}, {7, 7}, {8, 8}};
-  s21::map<int, int>::iterator it3 = a3.begin();
-  it3 = a3.erase(++it3, --a3.end());
-  EXPECT_EQ(8, *it3);
-  it3 = a3.begin();
-  EXPECT_EQ(1, *it3);
-  it3 = a3.erase(it3);
-  EXPECT_EQ(8, *it3);
-  EXPECT_EQ(static_cast<int>(a3.size()), 1);
-  a3.erase(it3);
-  EXPECT_EQ(static_cast<int>(a3.size()), 0);
-
-  s21::map<int, int> a4 = {{1, 1}, {2, 2}, {3, 3}, {4, 4}};
-  a4.erase(1);
-  a4.erase(2);
-  s21::map<int, int>::iterator it4 = a4.begin();
-  EXPECT_EQ(3, *it4);
 }
 
 TEST(map, clear) {
@@ -191,126 +248,80 @@ TEST(map, clear) {
   a1.clear();
   EXPECT_EQ(static_cast<int>(a1.size()), 0);
 }
+  
 
 TEST(map, insert) {
   s21::map<int, int> a1 = {{1, 1}, {2, 2}, {3, 3}};
   s21::map<int, int>::iterator it1 = a1.begin();
-  std::pair<s21::map<int, int>::iterator, bool> pa;
-  pa = a1.insert({62, 33});
-  EXPECT_EQ(33, *pa.first);
+  std::pair<s21::map<int, int>::iterator, bool> pa = a1.insert(62, 33);
+  EXPECT_EQ(33, (*pa.first).second);
   pa = a1.insert({56, 22});
-  EXPECT_EQ(22, *pa.first);
+  EXPECT_EQ(22, (*pa.first).second);
   it1 = a1.begin();
-  EXPECT_EQ(1, *it1++);
-  EXPECT_EQ(2, *it1++);
-  EXPECT_EQ(3, *it1++);
-  EXPECT_EQ(22, *it1++);
-  EXPECT_EQ(33, *it1++);
+  EXPECT_EQ(1, (*it1++).second);
+  EXPECT_EQ(2, (*it1++).second);
+  EXPECT_EQ(3, (*it1++).second);
+  EXPECT_EQ(22, (*it1++).second);
+  EXPECT_EQ(33, (*it1++).second);
   pa = a1.insert({76, 88});
-  EXPECT_EQ(88, *pa.first);
+  EXPECT_EQ(88, (*pa.first).second);
   EXPECT_EQ(6, static_cast<int>(a1.size()));
 
-  s21::map<int, int> a2;
-  a2.insert(++a1.begin(), --a1.end());
-  it1 = a2.begin();
-  EXPECT_EQ(2, *it1++);
-  EXPECT_EQ(3, *it1++);
-  EXPECT_EQ(22, *it1++);
-  EXPECT_EQ(33, *it1++);
-  EXPECT_EQ(4, static_cast<int>(a2.size()));
-  a2.clear();
-  a2.insert({{1, 1}, {2, 2}, {3, 333}});
-  a2.insert(--a2.end(), {3123, 1234});
-  it1 = a2.begin();
-  EXPECT_EQ(4, static_cast<int>(a2.size()));
-  EXPECT_EQ(1, *it1++);
-  EXPECT_EQ(2, *it1++);
-  EXPECT_EQ(333, *it1++);
-  EXPECT_EQ(1234, *it1++);
-}
-
-TEST(map, crend) {
-  s21::map<int, int> a1 = {{12, 1}, {223, 2}, {3123, 3}};
-  s21::map<int, int>::const_reverse_iterator it = a1.crend();
-  EXPECT_EQ(1, *--it);
-}
-
-TEST(map, crbegin) {
-  s21::map<int, int> a1 = {{12, 1}, {223, 2}, {3123, 3}};
-  s21::map<int, int>::const_reverse_iterator it = a1.crbegin();
-  EXPECT_EQ(3, *it);
-}
-
-TEST(map, rend_const) {
-  const s21::map<int, int> a1 = {{12, 1}, {223, 2}, {3123, 3}};
-  s21::map<int, int>::const_reverse_iterator it = a1.rend();
-  EXPECT_EQ(1, *--it);
-}
-
-TEST(map, rbegin_const) {
-  const s21::map<int, int> a1 = {{12, 1}, {223, 2}, {3123, 3}};
-  s21::map<int, int>::const_reverse_iterator it = a1.rbegin();
-  EXPECT_EQ(3, *it);
+  s21::map<int, int> a3 = {{1, 1}, {2, 2}, {3, 3}};
+  auto pa1 = a3.insert_or_assign(4, 34);
+  EXPECT_EQ(4, (*pa1.first).first);
+  EXPECT_EQ(34, (*pa1.first).second);
+  pa1 = a3.insert_or_assign(4, 355);
+  EXPECT_EQ(4, (*pa1.first).first);
+  EXPECT_EQ(355, (*pa1.first).second);
 }
 
 TEST(map, cbegin) {
   const s21::map<int, int> a1 = {{12, 1}, {223, 2}, {3123, 3}};
   s21::map<int, int>::const_iterator it = a1.cbegin();
-  EXPECT_EQ(1, *it);
+  EXPECT_EQ(1, (*it).second);
 }
 
 TEST(map, cend) {
   s21::map<int, std::string> a1 = {{1, "1"}, {2, "2"}, {3, "3"}};
   s21::map<int, std::string>::const_iterator it = a1.cend();
-  EXPECT_EQ("3", *--it);
+  EXPECT_EQ("3", (*--it).second);
 }
 
 TEST(map, begin_const) {
   const s21::map<int, int> a1 = {{12, 1}, {223, 2}, {3123, 3}};
   s21::map<int, int>::const_iterator it = a1.begin();
-  EXPECT_EQ(1, *it);
+  EXPECT_EQ(1, (*it).second);
 }
 
 TEST(map, end_const) {
   const s21::map<int, std::string> a1 = {{1, "1"}, {2, "2"}, {3, "3"}};
   s21::map<int, std::string>::const_iterator it = a1.end();
-  EXPECT_EQ("3", *--it);
+  EXPECT_EQ("3", (*--it).second);
 }
 
 TEST(map, move) {
   s21::map<int, int> a1 = {{12, 1}, {223, 2}, {3123, 3}};
   s21::map<int, int> a2(std::move(a1));
   s21::map<int, int>::iterator it = a2.begin();
-  EXPECT_EQ(1, *it);
+  EXPECT_EQ(1, (*it).second);
 
   s21::map<int, int> a3 = {{12, 8}, {223, 9}, {331, 10}};
   a2 = std::move(a3);
   it = a2.begin();
-  EXPECT_EQ(8, *it);
-}
-
-TEST(map, rend) {
-  s21::map<int, int> a1 = {{12, 1}, {223, 2}, {3123, 3}};
-  s21::map<int, int>::reverse_iterator it = a1.rend();
-  EXPECT_EQ(1, *--it);
-}
-
-TEST(map, rbegin) {
-  s21::map<int, int> a1 = {{12, 1}, {223, 2}, {3123, 3}};
-  s21::map<int, int>::reverse_iterator it = a1.rbegin();
-  EXPECT_EQ(3, *it);
+  EXPECT_EQ(8, (*it).second);
 }
 
 TEST(map, begin) {
   s21::map<int, int> a1 = {{12, 1}, {223, 2}, {3123, 3}};
   s21::map<int, int>::iterator it = a1.begin();
-  EXPECT_EQ(1, *it);
+  EXPECT_EQ(1, (*it).second);
 }
 
 TEST(map, end) {
   s21::map<int, std::string> a1 = {{1, "1"}, {2, "2"}, {3, "3"}};
   s21::map<int, std::string>::iterator it = a1.end();
-  EXPECT_EQ("3", *--it);
+  EXPECT_EQ("3", (*--it).second);
 }
 
 TEST(map, size) {
@@ -331,13 +342,13 @@ TEST(map, swap) {
   a1.swap(a2);
   s21::map<int, int>::iterator it1 = a1.begin();
   s21::map<int, int>::iterator it2 = a2.begin();
-  EXPECT_EQ(4, *it1++);
-  EXPECT_EQ(*it1++, 5);
-  EXPECT_EQ(*it1++, 6);
-  EXPECT_EQ(*it1++, 55);
-  EXPECT_EQ(*it2++, 1);
-  EXPECT_EQ(*it2++, 2);
-  EXPECT_EQ(*it2++, 3);
+  EXPECT_EQ(4, (*it1++).second);
+  EXPECT_EQ((*it1++).second, 5);
+  EXPECT_EQ((*it1++).second, 6);
+  EXPECT_EQ((*it1++).second, 55);
+  EXPECT_EQ((*it2++).second, 1);
+  EXPECT_EQ((*it2++).second, 2);
+  EXPECT_EQ((*it2++).second, 3);
   EXPECT_EQ(static_cast<int>(a2.size()), 3);
   EXPECT_EQ(static_cast<int>(a1.size()), 4);
 }
@@ -345,9 +356,9 @@ TEST(map, swap) {
 TEST(map, map) {
   s21::map<int, std::string> a1({{1, "1"}, {2, "2"}, {3, "3"}});
   s21::map<int, std::string>::iterator it1 = a1.begin();
-  EXPECT_EQ("1", *it1++);
-  EXPECT_EQ("2", *it1++);
-  EXPECT_EQ("3", *it1);
+  EXPECT_EQ("1", (*it1++).second);
+  EXPECT_EQ("2", (*it1++).second);
+  EXPECT_EQ("3", (*it1).second);
 }
 
 TEST(map, map3) {
@@ -356,9 +367,9 @@ TEST(map, map3) {
   s21::map<int, std::string>::iterator it1 = a1.begin();
 
   EXPECT_EQ(3, static_cast<int>(a1.size()));
-  EXPECT_EQ("c", *it1++);
-  EXPECT_EQ("cc", *it1++);
-  EXPECT_EQ("c", *it1);
+  EXPECT_EQ("c", (*it1++).second);
+  EXPECT_EQ("cc", (*it1++).second);
+  EXPECT_EQ("c", (*it1).second);
 }
 
 TEST(map, map4) {
@@ -366,9 +377,9 @@ TEST(map, map4) {
   s21::map<int, std::string> a1(a.begin(), a.end());
   s21::map<int, std::string>::iterator it1 = a1.begin();
   EXPECT_EQ(3, static_cast<int>(a1.size()));
-  EXPECT_EQ("c", *it1++);
-  EXPECT_EQ("cc", *it1++);
-  EXPECT_EQ("c", *it1);
+  EXPECT_EQ("c", (*it1++).second);
+  EXPECT_EQ("cc", (*it1++).second);
+  EXPECT_EQ("c", (*it1).second);
 }
 
 TEST(map, operator) {
@@ -416,6 +427,26 @@ TEST(map, operator3) {
   EXPECT_EQ(false, a > a1);
 }
 
+TEST(map, operator4) {
+  s21::map<int, std::string> a = {{1, "1"}, {4, "4"}, {3, "3"}};
+  EXPECT_EQ("1", a[1]);
+  EXPECT_EQ("12", a[1] = "12");
+  EXPECT_EQ("175", a[1] = "175");
+  EXPECT_EQ(static_cast<size_t>(3), a.size());
+  EXPECT_EQ("", a[11]);
+  EXPECT_EQ(static_cast<size_t>(4), a.size());
+  EXPECT_EQ("175", a.at(1));
+}
+
+TEST(map, merge) {
+  s21::map<int, std::string> a = {{1, "1"}, {4, "4"}, {3, "3"}};
+  s21::map<int, std::string> a1 = {{1, "1"}, {4, "4"}, {3, "3"}, {44, "33"}};
+  s21::map<int, std::string> a2 = {{1, "1"}, {4, "4"}, {3, "3"}, {44, "33"}};
+  a.merge(a1);
+  EXPECT_EQ(true, a == a2);
+  EXPECT_EQ(static_cast<size_t>(4), a.size());
+}
+
 TEST(map, emplace) {
   typedef std::pair<const int, std::string> value_type;
   s21::map<int, std::string> a = {{1, "1"}};
@@ -429,93 +460,27 @@ TEST(map, emplace) {
   EXPECT_EQ(false, a > a1);
 }
 
-TEST(map, lower_bound) {
-  s21::map<int, int> a1 = {{1, 1}, {2, 2}, {4, 4}, {5, 5}, {6, 6}, {55, 55}};
-  s21::map<int, int>::iterator it1 = a1.lower_bound(8);
-  EXPECT_EQ(55, *it1);
-  it1 = a1.lower_bound(4);
-  EXPECT_EQ(4, *it1);
-  it1 = a1.lower_bound(3);
-  EXPECT_EQ(4, *it1);
-}
-
-TEST(map, upper_bound) {
-  s21::map<int, int> a1 = {{1, 1}, {2, 2}, {4, 4}, {5, 5}, {6, 6}, {55, 55}};
-  s21::map<int, int>::iterator it1 = a1.upper_bound(8);
-  EXPECT_EQ(55, *it1);
-  it1 = a1.upper_bound(4);
-  EXPECT_EQ(5, *it1);
-  it1 = a1.upper_bound(3);
-  EXPECT_EQ(4, *it1);
-}
-
-TEST(map, equal_range) {
-  s21::map<int, int> a1 = {{1, 1}, {2, 2}, {4, 4}, {5, 5}, {6, 6}, {55, 55}};
-  std::pair<s21::map<int, int>::iterator, s21::map<int, int>::iterator> it1 =
-      a1.equal_range(8);
-  EXPECT_EQ(55, *it1.first);
-  EXPECT_EQ(55, *it1.second);
-  it1 = a1.equal_range(4);
-  EXPECT_EQ(4, *it1.first);
-  EXPECT_EQ(5, *it1.second);
-  it1 = a1.equal_range(3);
-  EXPECT_EQ(4, *it1.first);
-  EXPECT_EQ(4, *it1.second);
-}
-
 TEST(map, find) {
   s21::map<int, int> a1 = {{1, 1}, {2, 2}, {4, 4}, {5, 5}, {6, 6}, {55, 55}};
   s21::map<int, int>::iterator it1 = a1.find(6);
-  EXPECT_EQ(6, *it1);
+  EXPECT_EQ(6, (*it1).second);
   it1 = a1.find(4);
-  EXPECT_EQ(4, *it1);
+  EXPECT_EQ(4, (*it1).second);
 }
 
-TEST(map, lower_bound_const) {
-  const s21::map<int, int> a1 = {{1, 1}, {2, 2}, {4, 4},
-                                 {5, 5}, {6, 6}, {55, 55}};
-  s21::map<int, int>::const_iterator it1 = a1.lower_bound(8);
-  EXPECT_EQ(55, *it1);
-  it1 = a1.lower_bound(4);
-  EXPECT_EQ(4, *it1);
-  it1 = a1.lower_bound(3);
-  EXPECT_EQ(4, *it1);
-}
-
-TEST(map, upper_bound_const) {
-  const s21::map<int, int> a1 = {{1, 1}, {2, 2}, {4, 4},
-                                 {5, 5}, {6, 6}, {55, 55}};
-  s21::map<int, int>::const_iterator it1 = a1.upper_bound(8);
-  EXPECT_EQ(55, *it1);
-  it1 = a1.upper_bound(4);
-  EXPECT_EQ(5, *it1);
-  it1 = a1.upper_bound(3);
-  EXPECT_EQ(4, *it1);
-}
-
-TEST(map, equal_range_const) {
-  const s21::map<int, int> a1 = {{1, 1}, {2, 2}, {4, 4},
-                                 {5, 5}, {6, 6}, {55, 55}};
-  std::pair<s21::map<int, int>::const_iterator,
-            s21::map<int, int>::const_iterator>
-      it1 = a1.equal_range(8);
-  EXPECT_EQ(55, *it1.first);
-  EXPECT_EQ(55, *it1.second);
-  it1 = a1.equal_range(4);
-  EXPECT_EQ(4, *it1.first);
-  EXPECT_EQ(5, *it1.second);
-  it1 = a1.equal_range(3);
-  EXPECT_EQ(4, *it1.first);
-  EXPECT_EQ(4, *it1.second);
+TEST(map, contains) {
+  s21::map<int, int> a1 = {{1, 1}, {2, 2}, {4, 4}, {5, 5}, {6, 6}, {55, 55}};
+  EXPECT_EQ(true, a1.contains(4));
+  EXPECT_EQ(false, a1.contains(42));
 }
 
 TEST(map, find_const) {
   const s21::map<int, int> a1 = {{1, 1}, {2, 2}, {4, 4},
                                  {5, 5}, {6, 6}, {55, 55}};
   s21::map<int, int>::const_iterator it1 = a1.find(6);
-  EXPECT_EQ(6, *it1);
+  EXPECT_EQ(6, (*it1).second);
   it1 = a1.find(4);
-  EXPECT_EQ(4, *it1);
+  EXPECT_EQ(4, (*it1).second);
 }
 
 TEST(map, count) {
@@ -544,74 +509,50 @@ TEST(map, iterator_greater) {
   s21::map<int, int, std::greater<int>> a1 = {{3, 3}, {2, 2}, {1, 1}};
   s21::map<int, int, std::greater<int>>::iterator it = a1.begin();
   s21::map<int, int, std::greater<int>>::iterator it1 = a1.begin();
-  EXPECT_EQ(3, *it++);
-  EXPECT_EQ(1, *++it);
-  EXPECT_EQ(2, *--it);
-  EXPECT_EQ(2, *it--);
-  EXPECT_EQ(3, *it++);
-  EXPECT_EQ(2, *it);
+  EXPECT_EQ(3, (*it++).second);
+  EXPECT_EQ(1, (*++it).second);
+  EXPECT_EQ(2, (*--it).second);
+  EXPECT_EQ(2, (*it--).second);
+  EXPECT_EQ(3, (*it++).second);
+  EXPECT_EQ(2, (*it).second);
   EXPECT_EQ(true, it != it1);
   EXPECT_EQ(true, --it == it1);
 }
 
-TEST(map, reverse_iterator_greater) {
-  s21::map<int, int, std::greater<int>> a1 = {{1, 1}, {2, 2}, {3, 3}};
-  s21::map<int, int, std::greater<int>>::reverse_iterator it = a1.rbegin();
-  s21::map<int, int, std::greater<int>>::reverse_iterator it1 = a1.rbegin();
-  EXPECT_EQ(1, *it++);
-  EXPECT_EQ(3, *++it);
-  EXPECT_EQ(2, *--it);
-  EXPECT_EQ(2, *it--);
-  EXPECT_EQ(1, *it++);
-  EXPECT_EQ(2, *it);
-  EXPECT_EQ(true, it != it1);
-  EXPECT_EQ(true, --it == it1);
-}
-
+// 
 TEST(map, erase_greater) {
   s21::map<int, int, std::greater<int>> a1 = {
       {3123, 3123}, {12, 12},   {23123, 23123}, {312, 312}, {31, 31},
       {2313, 2313}, {213, 213}, {1, 1},         {64, 64},   {456, 456},
       {45, 45},     {37, 37},   {8, 8}};
-  s21::map<int, int, std::greater<int>>::iterator it = a1.begin();
-  it = a1.erase(a1.find(312));
-  EXPECT_EQ(213, *it);
-  it = a1.erase(a1.find(31));
-  EXPECT_EQ(12, *it);
-  it = a1.erase(a1.find(37));
-  EXPECT_EQ(12, *it);
-  it = a1.erase(it);
-  EXPECT_EQ(8, *it);
-  it = a1.erase(it);
-  EXPECT_EQ(1, *it);
-  it++;
-  it++;
-  it = a1.erase(it);
-  EXPECT_EQ(3123, *it);
-
-  s21::map<int, int, std::greater<int>> a2 = {{1, 1}, {2, 2}, {3, 3}, {4, 4},
-                                              {5, 5}, {6, 6}, {7, 7}, {8, 8}};
-  s21::map<int, int, std::greater<int>>::iterator it2 = a2.begin();
-  it2 = a2.erase(it2);
-  EXPECT_EQ(7, *it2);
-  it2 = a2.erase(it2);
-  it2++;
-  it2++;
-  it2 = a2.erase(it2);
-  EXPECT_EQ(3, *it2);
-
-  s21::map<int, int, std::greater<int>> a3 = {{1, 1}, {2, 2}, {3, 3}, {4, 4},
-                                              {5, 5}, {6, 6}, {7, 7}, {8, 8}};
-  s21::map<int, int, std::greater<int>>::iterator it3 = a3.begin();
-  it3 = a3.erase(++it3, --a3.end());
-  EXPECT_EQ(1, *it3);
-  it3 = a3.begin();
-  EXPECT_EQ(8, *it3);
-  it3 = a3.erase(it3);
-  EXPECT_EQ(1, *it3);
-  EXPECT_EQ(static_cast<int>(a3.size()), 1);
-  a3.erase(it3);
-  EXPECT_EQ(static_cast<int>(a3.size()), 0);
+  std::map<int, int, std::greater<int>> a2 = {
+      {3123, 3123}, {12, 12},   {23123, 23123}, {312, 312}, {31, 31},
+      {2313, 2313}, {213, 213}, {1, 1},         {64, 64},   {456, 456},
+      {45, 45},     {37, 37},   {8, 8}};
+  a1.erase(a1.find(213));
+  a2.erase(a2.find(213));
+  EXPECT_EQ(0, Comparison(a1, a2));
+  a1.erase(a1.find(8));
+  a2.erase(a2.find(8));
+  EXPECT_EQ(0, Comparison(a1, a2));
+  a1.erase(a1.find(64));
+  a2.erase(a2.find(64));
+  EXPECT_EQ(0, Comparison(a1, a2));
+  a1.erase(a1.find(31));
+  a2.erase(a2.find(31));
+  EXPECT_EQ(0, Comparison(a1, a2));
+  a1.erase(a1.find(12));
+  a2.erase(a2.find(12));
+  EXPECT_EQ(0, Comparison(a1, a2));
+  a1.erase(a1.find(45));
+  a2.erase(a2.find(45));
+  EXPECT_EQ(0, Comparison(a1, a2));
+  a1.erase(a1.find(37));
+  a2.erase(a2.find(37));
+  EXPECT_EQ(0, Comparison(a1, a2));
+  a1.erase(a1.find(2313));
+  a2.erase(a2.find(2313));
+  EXPECT_EQ(0, Comparison(a1, a2));
 }
 
 TEST(map, clear_greater) {
@@ -620,65 +561,50 @@ TEST(map, clear_greater) {
   EXPECT_EQ(static_cast<int>(a1.size()), 0);
 }
 
+TEST(map, at) {
+  s21::map<int, int> a1 = {{1, 15}, {2, 25}, {3, 35}};
+  EXPECT_EQ(15, a1.at(1));
+  EXPECT_EQ(35, a1.at(3));
+  a1.at(3) = 99;
+  EXPECT_EQ(99, a1.at(3));
+}
+
+TEST(map, at_const) {
+  const s21::map<int, int> a1 = {{1, 15}, {2, 25}, {3, 35}};
+  EXPECT_EQ(15, a1.at(1));
+  EXPECT_EQ(35, a1.at(3));
+  EXPECT_EQ(25, a1.at(2));
+}
+
 TEST(map, insert_greater) {
   s21::map<int, int, std::greater<int>> a1 = {{1, 1}, {2, 2}, {3, 3}};
   s21::map<int, int, std::greater<int>>::iterator it1 = a1.begin();
-  std::pair<s21::map<int, int, std::greater<int>>::iterator, bool> pa;
-  pa = a1.insert({33, 33});
-  EXPECT_EQ(33, *pa.first);
+  std::pair<s21::map<int, int, std::greater<int>>::iterator, bool> pa =
+      a1.insert({33, 33});
+  EXPECT_EQ(33, (*pa.first).second);
   pa = a1.insert({22, 22});
-  EXPECT_EQ(22, *pa.first);
+  EXPECT_EQ(22, (*pa.first).second);
   it1 = a1.begin();
-  EXPECT_EQ(33, *it1++);
-  EXPECT_EQ(22, *it1++);
-  EXPECT_EQ(3, *it1++);
-  EXPECT_EQ(2, *it1++);
-  EXPECT_EQ(1, *it1++);
+  EXPECT_EQ(33, (*it1++).second);
+  EXPECT_EQ(22, (*it1++).second);
+  EXPECT_EQ(3, (*it1++).second);
+  EXPECT_EQ(2, (*it1++).second);
+  EXPECT_EQ(1, (*it1++).second);
   pa = a1.insert({88, 88});
-  EXPECT_EQ(88, *pa.first);
+  EXPECT_EQ(88, (*pa.first).second);
   EXPECT_EQ(6, static_cast<int>(a1.size()));
-
-  s21::map<int, int, std::greater<int>> a2;
-  a2.insert(++a1.begin(), --a1.end());
-  it1 = a2.begin();
-  EXPECT_EQ(33, *it1++);
-  EXPECT_EQ(22, *it1++);
-  EXPECT_EQ(3, *it1++);
-  EXPECT_EQ(2, *it1++);
-  EXPECT_EQ(4, static_cast<int>(a2.size()));
-  a2.clear();
-  a2.insert({{1, 1}, {2, 2}, {3, 333}});
-  a2.insert(a2.begin(), {1234, 1234});
-  it1 = a2.begin();
-  EXPECT_EQ(4, static_cast<int>(a2.size()));
-  EXPECT_EQ(1234, *it1++);
-  EXPECT_EQ(333, *it1++);
-  EXPECT_EQ(2, *it1++);
-  EXPECT_EQ(1, *it1++);
-}
-
-TEST(map, rend_greater) {
-  s21::map<int, int, std::greater<int>> a1 = {{1, 1}, {2, 2}, {3, 3}};
-  s21::map<int, int, std::greater<int>>::reverse_iterator it = a1.rend();
-  EXPECT_EQ(3, *--it);
-}
-
-TEST(map, rbegin_greater) {
-  s21::map<int, int, std::greater<int>> a1 = {{1, 1}, {2, 2}, {3, 3}};
-  s21::map<int, int, std::greater<int>>::reverse_iterator it = a1.rbegin();
-  EXPECT_EQ(1, *it);
 }
 
 TEST(map, begin_greater) {
   s21::map<int, int, std::greater<int>> a1 = {{1, 1}, {2, 2}, {3, 3}};
   s21::map<int, int, std::greater<int>>::iterator it = a1.begin();
-  EXPECT_EQ(3, *it);
+  EXPECT_EQ(3, (*it).second);
 }
 
 TEST(map, end_greater) {
   s21::map<int, int, std::greater<int>> a1 = {{1, 1}, {2, 2}, {3, 3}};
   s21::map<int, int, std::greater<int>>::iterator it = a1.end();
-  EXPECT_EQ(1, *--it);
+  EXPECT_EQ(1, (*--it).second);
 }
 
 TEST(map, size_greater) {
@@ -699,13 +625,13 @@ TEST(map, swap_greater) {
   a1.swap(a2);
   s21::map<int, int, std::greater<int>>::iterator it1 = a1.begin();
   s21::map<int, int, std::greater<int>>::iterator it2 = a2.begin();
-  EXPECT_EQ(55, *it1++);
-  EXPECT_EQ(*it1++, 6);
-  EXPECT_EQ(*it1++, 5);
-  EXPECT_EQ(*it1++, 4);
-  EXPECT_EQ(*it2++, 3);
-  EXPECT_EQ(*it2++, 2);
-  EXPECT_EQ(*it2++, 1);
+  EXPECT_EQ(55, (*it1++).second);
+  EXPECT_EQ((*it1++).second, 6);
+  EXPECT_EQ((*it1++).second, 5);
+  EXPECT_EQ((*it1++).second, 4);
+  EXPECT_EQ((*it2++).second, 3);
+  EXPECT_EQ((*it2++).second, 2);
+  EXPECT_EQ((*it2++).second, 1);
   EXPECT_EQ(static_cast<int>(a2.size()), 3);
   EXPECT_EQ(static_cast<int>(a1.size()), 4);
 }
@@ -713,9 +639,9 @@ TEST(map, swap_greater) {
 TEST(map, map_greater) {
   s21::map<int, int, std::greater<int>> a1({{1, 1}, {2, 2}, {3, 3}});
   s21::map<int, int, std::greater<int>>::iterator it1 = a1.begin();
-  EXPECT_EQ(3, *it1++);
-  EXPECT_EQ(2, *it1++);
-  EXPECT_EQ(1, *it1);
+  EXPECT_EQ(3, (*it1++).second);
+  EXPECT_EQ(2, (*it1++).second);
+  EXPECT_EQ(1, (*it1).second);
 }
 
 TEST(map, map3_greater) {
@@ -724,9 +650,9 @@ TEST(map, map3_greater) {
   s21::map<int, int, std::greater<int>>::iterator it1 = a1.begin();
 
   EXPECT_EQ(3, static_cast<int>(a1.size()));
-  EXPECT_EQ(3, *it1++);
-  EXPECT_EQ(2, *it1++);
-  EXPECT_EQ(1, *it1);
+  EXPECT_EQ(3, (*it1++).second);
+  EXPECT_EQ(2, (*it1++).second);
+  EXPECT_EQ(1, (*it1).second);
 }
 
 TEST(map, map4_greater) {
@@ -734,9 +660,11 @@ TEST(map, map4_greater) {
   s21::map<int, int, std::greater<int>> a1(a.begin(), a.end());
   s21::map<int, int, std::greater<int>>::iterator it1 = a1.begin();
   EXPECT_EQ(3, static_cast<int>(a1.size()));
-  EXPECT_EQ(3, *it1++);
-  EXPECT_EQ(2, *it1++);
-  EXPECT_EQ(1, *it1);
+  EXPECT_EQ(3, (*it1).second);
+  ++it1;
+  EXPECT_EQ(2, (*it1).second);
+  ++it1;
+  EXPECT_EQ(1, (*it1).second);
 }
 
 TEST(map, operator_greater) {
@@ -788,7 +716,7 @@ TEST(map, emplace_greater) {
   typedef std::pair<const int, int> value_type;
   s21::map<int, int, std::greater<int>> a = {{1, 1}};
   s21::map<int, int, std::greater<int>> a1 = {{1, 1}, {2, 2}, {3, 3}, {4, 4}};
-  s21::vector<std::pair<s21::map<int, int, std::greater<int>>::iterator, bool>>
+  std::vector<std::pair<s21::map<int, int, std::greater<int>>::iterator, bool>>
       result = a.emplace(value_type(4, 4), value_type(4, 4), value_type(2, 2),
                          value_type(3, 3));
   EXPECT_EQ(true, a == a1);
@@ -797,56 +725,18 @@ TEST(map, emplace_greater) {
   EXPECT_EQ(true, a <= a1);
   EXPECT_EQ(true, a >= a1);
   EXPECT_EQ(false, a > a1);
-  EXPECT_EQ(4, *result[0].first);
+  EXPECT_EQ(4, (*result[0].first).second);
   EXPECT_EQ(true, result[0].second);
   EXPECT_EQ(false, result[1].second);
-}
-
-TEST(map, lower_bound_greater) {
-  s21::map<int, int, std::greater<int>> a1 = {{1, 1}, {2, 2}, {4, 4},
-                                              {5, 5}, {6, 6}, {55, 55}};
-  s21::map<int, int, std::greater<int>>::iterator it1 = a1.lower_bound(8);
-  EXPECT_EQ(6, *it1);
-  it1 = a1.lower_bound(4);
-  EXPECT_EQ(4, *it1);
-  it1 = a1.lower_bound(3);
-  EXPECT_EQ(2, *it1);
-}
-
-TEST(map, upper_bound_greater) {
-  s21::map<int, int, std::greater<int>> a1 = {{1, 1}, {2, 2}, {4, 4},
-                                              {5, 5}, {6, 6}, {55, 55}};
-  s21::map<int, int, std::greater<int>>::iterator it1 = a1.upper_bound(8);
-  EXPECT_EQ(6, *it1);
-  it1 = a1.upper_bound(4);
-  EXPECT_EQ(2, *it1);
-  it1 = a1.upper_bound(3);
-  EXPECT_EQ(2, *it1);
-}
-
-TEST(map, equal_range_greater) {
-  s21::map<int, int, std::greater<int>> a1 = {{1, 1}, {2, 2}, {4, 4},
-                                              {5, 5}, {6, 6}, {55, 55}};
-  std::pair<s21::map<int, int, std::greater<int>>::iterator,
-            s21::map<int, int, std::greater<int>>::iterator>
-      it1 = a1.equal_range(8);
-  EXPECT_EQ(6, *it1.first);
-  EXPECT_EQ(6, *it1.second);
-  it1 = a1.equal_range(4);
-  EXPECT_EQ(4, *it1.first);
-  EXPECT_EQ(2, *it1.second);
-  it1 = a1.equal_range(3);
-  EXPECT_EQ(2, *it1.first);
-  EXPECT_EQ(2, *it1.second);
 }
 
 TEST(map, find_greater) {
   s21::map<int, int, std::greater<int>> a1 = {{1, 1}, {2, 2}, {4, 4},
                                               {5, 5}, {6, 6}, {55, 55}};
   s21::map<int, int, std::greater<int>>::iterator it1 = a1.find(6);
-  EXPECT_EQ(6, *it1);
+  EXPECT_EQ(6, (*it1).second);
   it1 = a1.find(4);
-  EXPECT_EQ(4, *it1);
+  EXPECT_EQ(4, (*it1).second);
 }
 
 TEST(map, count_greater) {
@@ -899,74 +789,22 @@ TEST(set, const_iterator) {
   EXPECT_EQ(true, --it == it1);
 }
 
-TEST(set, reverse_iterator) {
-  s21::set<std::string> a1 = {"1", "2", "3"};
-  s21::set<std::string>::reverse_iterator it = a1.rbegin();
-  s21::set<std::string>::reverse_iterator it1 = a1.rbegin();
-  EXPECT_EQ("3", *it++);
-  EXPECT_EQ("1", *++it);
-  EXPECT_EQ("2", *--it);
-  EXPECT_EQ("2", *it--);
-  EXPECT_EQ("3", *it++);
-  EXPECT_EQ("2", *it);
-  EXPECT_EQ(true, it != it1);
-  EXPECT_EQ(true, --it == it1);
-}
-
-TEST(set, const_reverse_iterator) {
-  s21::set<std::string> a1 = {"1", "2", "3"};
-  s21::set<std::string>::const_reverse_iterator it = a1.crbegin();
-  s21::set<std::string>::const_reverse_iterator it1 = a1.crbegin();
-  EXPECT_EQ("3", *it++);
-  EXPECT_EQ("1", *++it);
-  EXPECT_EQ("2", *--it);
-  EXPECT_EQ("2", *it--);
-  EXPECT_EQ("3", *it++);
-  EXPECT_EQ("2", *it);
-  EXPECT_EQ(true, it != it1);
-  EXPECT_EQ(true, --it == it1);
-}
-
 TEST(set, erase) {
-  s21::set<std::string> a1 = {"1", "2", "3", "4", "5", "6", "7", "8"};
-  s21::set<std::string>::iterator it = a1.begin();
-  it = a1.erase(it);
-  EXPECT_EQ("2", *it);
-  it = a1.erase(it);
-  it++;
-  it++;
-  it = a1.erase(it);
-  EXPECT_EQ("6", *it);
+  s21::set<std::string> a1 = {"1", "2", "2",  "3",     "3",       "4", "4",
+                              "1", "4", "22", "dcasd", "1sd21es", "1e"};
+  a1.erase(a1.find("1"));
+  a1.erase(a1.find("3"));
+  a1.erase(a1.find("4"));
+  a1.erase(a1.find("1e"));
 
-  s21::set<int> a2 = {1, 2, 3, 4, 5, 6, 7, 8};
-  s21::set<int>::iterator it2 = a2.begin();
-  it2 = a2.erase(it2);
-  EXPECT_EQ(2, *it2);
-  it2 = a2.erase(it2);
-  it2++;
-  it2++;
-  it2 = a2.erase(it2);
-  EXPECT_EQ(6, *it2);
+  std::set<std::string> a2 = {"1", "2", "2",  "3",     "3",       "4", "4",
+                              "1", "4", "22", "dcasd", "1sd21es", "1e"};
+  a2.erase(a2.find("1"));
+  a2.erase(a2.find("3"));
+  a2.erase(a2.find("4"));
+  a2.erase(a2.find("1e"));
 
-  s21::set<int> a3 = {1, 2, 3, 4, 5, 6, 7, 8};
-  s21::set<int>::iterator it3 = a3.begin();
-  it3 = a3.erase(++it3, --a3.end());
-  EXPECT_EQ(8, *it3);
-  it3 = a3.begin();
-  EXPECT_EQ(1, *it3);
-  it3 = a3.erase(it3);
-  EXPECT_EQ(8, *it3);
-  EXPECT_EQ(static_cast<int>(a3.size()), 1);
-  a3.erase(it3);
-  EXPECT_EQ(static_cast<int>(a3.size()), 0);
-
-  s21::set<int> a4 = {1, 2, 3, 4, 5};
-  a4.erase(4);
-  a4.erase(1);
-  a4.erase(2);
-  s21::set<int>::iterator it4 = a4.begin();
-  EXPECT_EQ(3, *it4);
-  EXPECT_EQ(static_cast<int>(a4.size()), 2);
+  EXPECT_EQ(0, Comparison(a1, a2));
 }
 
 TEST(set, clear) {
@@ -978,8 +816,7 @@ TEST(set, clear) {
 TEST(set, insert) {
   s21::set<int> a1 = {1, 2, 3};
   s21::set<int>::iterator it1 = a1.begin();
-  std::pair<s21::set<int>::iterator, bool> pa;
-  pa = a1.insert(33);
+  std::pair<s21::set<int>::iterator, bool> pa = a1.insert(33);
   EXPECT_EQ(33, *pa.first);
   pa = a1.insert(22);
   EXPECT_EQ(22, *pa.first);
@@ -992,36 +829,6 @@ TEST(set, insert) {
   pa = a1.insert(88);
   EXPECT_EQ(88, *pa.first);
   EXPECT_EQ(6, static_cast<int>(a1.size()));
-
-  s21::set<int> a2;
-  a2.insert(++a1.begin(), --a1.end());
-  it1 = a2.begin();
-  EXPECT_EQ(2, *it1++);
-  EXPECT_EQ(3, *it1++);
-  EXPECT_EQ(22, *it1++);
-  EXPECT_EQ(33, *it1++);
-  EXPECT_EQ(4, static_cast<int>(a2.size()));
-  a2.clear();
-  a2.insert({1, 2, 333});
-  a2.insert(--a2.end(), 1234);
-  it1 = a2.begin();
-  EXPECT_EQ(4, static_cast<int>(a2.size()));
-  EXPECT_EQ(1, *it1++);
-  EXPECT_EQ(2, *it1++);
-  EXPECT_EQ(333, *it1++);
-  EXPECT_EQ(1234, *it1++);
-}
-
-TEST(set, rend) {
-  s21::set<int> a1 = {1, 2, 3};
-  s21::set<int>::reverse_iterator it = a1.rend();
-  EXPECT_EQ(1, *--it);
-}
-
-TEST(set, rbegin) {
-  s21::set<int> a1 = {1, 2, 3};
-  s21::set<int>::reverse_iterator it = a1.rbegin();
-  EXPECT_EQ(3, *it);
 }
 
 TEST(set, begin) {
@@ -1151,40 +958,6 @@ TEST(set, emplace) {
   EXPECT_EQ(false, a > a1);
 }
 
-TEST(set, lower_bound) {
-  s21::set<int> a1 = {1, 2, 4, 5, 6, 55};
-  s21::set<int>::iterator it1 = a1.lower_bound(8);
-  EXPECT_EQ(55, *it1);
-  it1 = a1.lower_bound(4);
-  EXPECT_EQ(4, *it1);
-  it1 = a1.lower_bound(3);
-  EXPECT_EQ(4, *it1);
-}
-
-TEST(set, upper_bound) {
-  s21::set<int> a1 = {1, 2, 4, 5, 6, 55};
-  s21::set<int>::iterator it1 = a1.upper_bound(8);
-  EXPECT_EQ(55, *it1);
-  it1 = a1.upper_bound(4);
-  EXPECT_EQ(5, *it1);
-  it1 = a1.upper_bound(3);
-  EXPECT_EQ(4, *it1);
-}
-
-TEST(set, equal_range) {
-  s21::set<int> a1 = {1, 2, 4, 5, 6, 55};
-  std::pair<s21::set<int>::iterator, s21::set<int>::iterator> it1 =
-      a1.equal_range(8);
-  EXPECT_EQ(55, *it1.first);
-  EXPECT_EQ(55, *it1.second);
-  it1 = a1.equal_range(4);
-  EXPECT_EQ(4, *it1.first);
-  EXPECT_EQ(5, *it1.second);
-  it1 = a1.equal_range(3);
-  EXPECT_EQ(4, *it1.first);
-  EXPECT_EQ(4, *it1.second);
-}
-
 TEST(set, find) {
   s21::set<int> a1 = {1, 2, 4, 5, 6, 55};
   s21::set<int>::iterator it1 = a1.find(6);
@@ -1193,38 +966,11 @@ TEST(set, find) {
   EXPECT_EQ(4, *it1);
 }
 
-TEST(set, lower_bound_const) {
-  const s21::set<int> a1 = {1, 2, 4, 5, 6, 55};
-  s21::set<int>::const_iterator it1 = a1.lower_bound(8);
-  EXPECT_EQ(55, *it1);
-  it1 = a1.lower_bound(4);
-  EXPECT_EQ(4, *it1);
-  it1 = a1.lower_bound(3);
-  EXPECT_EQ(4, *it1);
-}
-
-TEST(set, upper_bound_const) {
-  const s21::set<int> a1 = {1, 2, 4, 5, 6, 55};
-  s21::set<int>::const_iterator it1 = a1.upper_bound(8);
-  EXPECT_EQ(55, *it1);
-  it1 = a1.upper_bound(4);
-  EXPECT_EQ(5, *it1);
-  it1 = a1.upper_bound(3);
-  EXPECT_EQ(4, *it1);
-}
-
-TEST(set, equal_range_const) {
-  const s21::set<int> a1 = {1, 2, 4, 5, 6, 55};
-  std::pair<s21::set<int>::const_iterator, s21::set<int>::const_iterator> it1 =
-      a1.equal_range(8);
-  EXPECT_EQ(55, *it1.first);
-  EXPECT_EQ(55, *it1.second);
-  it1 = a1.equal_range(4);
-  EXPECT_EQ(4, *it1.first);
-  EXPECT_EQ(5, *it1.second);
-  it1 = a1.equal_range(3);
-  EXPECT_EQ(4, *it1.first);
-  EXPECT_EQ(4, *it1.second);
+TEST(set, contains) {
+  s21::set<int> a1 = {1, 2, 4, 5, 6, 55};
+  EXPECT_EQ(true, a1.contains(4));
+  EXPECT_EQ(false, a1.contains(42));
+  EXPECT_EQ(true, a1.contains(55));
 }
 
 TEST(set, find_const) {
@@ -1257,30 +1003,6 @@ TEST(set, end_const) {
   const s21::set<std::string> a1 = {"1", "2", "3"};
   s21::set<std::string>::const_iterator it = a1.end();
   EXPECT_EQ("3", *--it);
-}
-
-TEST(set, rbegin_const) {
-  const s21::set<int> a1 = {1, 2, 3};
-  s21::set<int>::const_reverse_iterator it = a1.rbegin();
-  EXPECT_EQ(3, *it);
-}
-
-TEST(set, rend_const) {
-  const s21::set<std::string> a1 = {"1", "2", "3"};
-  s21::set<std::string>::const_reverse_iterator it = a1.rend();
-  EXPECT_EQ("1", *--it);
-}
-
-TEST(set, crbegin) {
-  const s21::set<int> a1 = {1, 2, 3};
-  s21::set<int>::const_reverse_iterator it = a1.crbegin();
-  EXPECT_EQ(3, *it);
-}
-
-TEST(set, crend) {
-  const s21::set<std::string> a1 = {"1", "2", "3"};
-  s21::set<std::string>::const_reverse_iterator it = a1.crend();
-  EXPECT_EQ("1", *--it);
 }
 
 TEST(set, move) {
@@ -1329,60 +1051,23 @@ TEST(set, iterator_greater) {
   EXPECT_EQ(true, --it == it1);
 }
 
-TEST(set, reverse_iterator_greater) {
-  s21::set<int, std::greater<int>> a1 = {1, 2, 3};
-  s21::set<int, std::greater<int>>::reverse_iterator it = a1.rbegin();
-  s21::set<int, std::greater<int>>::reverse_iterator it1 = a1.rbegin();
-  EXPECT_EQ(1, *it++);
-  EXPECT_EQ(3, *++it);
-  EXPECT_EQ(2, *--it);
-  EXPECT_EQ(2, *it--);
-  EXPECT_EQ(1, *it++);
-  EXPECT_EQ(2, *it);
-  EXPECT_EQ(true, it != it1);
-  EXPECT_EQ(true, --it == it1);
-}
-
 TEST(set, erase_greater) {
-  s21::set<int, std::greater<int>> a1 = {3123, 12, 23123, 312, 31, 2313, 213,
-                                         1,    64, 456,   45,  37, 8};
-  s21::set<int, std::greater<int>>::iterator it = a1.begin();
-  it = a1.erase(a1.find(312));
-  EXPECT_EQ(213, *it);
-  it = a1.erase(a1.find(31));
-  EXPECT_EQ(12, *it);
-  it = a1.erase(a1.find(37));
-  EXPECT_EQ(12, *it);
-  it = a1.erase(it);
-  EXPECT_EQ(8, *it);
-  it = a1.erase(it);
-  EXPECT_EQ(1, *it);
-  it++;
-  it++;
-  it = a1.erase(it);
-  EXPECT_EQ(3123, *it);
-
-  s21::set<int, std::greater<int>> a2 = {1, 2, 3, 4, 5, 6, 7, 8};
-  s21::set<int, std::greater<int>>::iterator it2 = a2.begin();
-  it2 = a2.erase(it2);
-  EXPECT_EQ(7, *it2);
-  it2 = a2.erase(it2);
-  it2++;
-  it2++;
-  it2 = a2.erase(it2);
-  EXPECT_EQ(3, *it2);
-
-  s21::set<int, std::greater<int>> a3 = {1, 2, 3, 4, 5, 6, 7, 8};
-  s21::set<int, std::greater<int>>::iterator it3 = a3.begin();
-  it3 = a3.erase(++it3, --a3.end());
-  EXPECT_EQ(1, *it3);
-  it3 = a3.begin();
-  EXPECT_EQ(8, *it3);
-  it3 = a3.erase(it3);
-  EXPECT_EQ(1, *it3);
-  EXPECT_EQ(static_cast<int>(a3.size()), 1);
-  a3.erase(it3);
-  EXPECT_EQ(static_cast<int>(a3.size()), 0);
+  s21::set<std::string> a1 = {"1", "2", "2",  "3",     "3",       "4", "4",
+                              "1", "4", "22", "dcasd", "1sd21es", "1e"};
+  std::set<std::string> a2 = {"1", "2", "2",  "3",     "3",       "4", "4",
+                              "1", "4", "22", "dcasd", "1sd21es", "1e"};
+  a1.erase(a1.find("1"));
+  a2.erase(a2.find("1"));
+  EXPECT_EQ(0, Comparison(a1, a2));
+  a2.erase(a2.find("3"));
+  a1.erase(a1.find("3"));
+  EXPECT_EQ(0, Comparison(a1, a2));
+  a1.erase(a1.find("4"));
+  a2.erase(a2.find("4"));
+  EXPECT_EQ(0, Comparison(a1, a2));
+  a1.erase(a1.find("1e"));
+  a2.erase(a2.find("1e"));
+  EXPECT_EQ(0, Comparison(a1, a2));
 }
 
 TEST(set, clear_greater) {
@@ -1391,11 +1076,24 @@ TEST(set, clear_greater) {
   EXPECT_EQ(static_cast<int>(a1.size()), 0);
 }
 
+TEST(set, merge) {
+  s21::set<std::string> a = {"2", "5", "1"};
+  s21::set<std::string> a2 = {"1", "3", "4", "5"};
+  s21::set<std::string> a1 = {"1", "2", "3", "4", "5"};
+  a.merge(a2);
+  EXPECT_EQ(true, a == a1);
+  EXPECT_EQ(false, a != a1);
+  EXPECT_EQ(false, a < a1);
+  EXPECT_EQ(true, a <= a1);
+  EXPECT_EQ(true, a >= a1);
+  EXPECT_EQ(false, a > a1);
+}
+
 TEST(set, insert_greater) {
   s21::set<int, std::greater<int>> a1 = {1, 2, 3};
   s21::set<int, std::greater<int>>::iterator it1 = a1.begin();
-  std::pair<s21::set<int, std::greater<int>>::iterator, bool> pa;
-  pa = a1.insert(33);
+  std::pair<s21::set<int, std::greater<int>>::iterator, bool> pa =
+      a1.insert(33);
   EXPECT_EQ(33, *pa.first);
   pa = a1.insert(22);
   EXPECT_EQ(22, *pa.first);
@@ -1408,36 +1106,6 @@ TEST(set, insert_greater) {
   pa = a1.insert(88);
   EXPECT_EQ(88, *pa.first);
   EXPECT_EQ(6, static_cast<int>(a1.size()));
-
-  s21::set<int, std::greater<int>> a2;
-  a2.insert(++a1.begin(), --a1.end());
-  it1 = a2.begin();
-  EXPECT_EQ(33, *it1++);
-  EXPECT_EQ(22, *it1++);
-  EXPECT_EQ(3, *it1++);
-  EXPECT_EQ(2, *it1++);
-  EXPECT_EQ(4, static_cast<int>(a2.size()));
-  a2.clear();
-  a2.insert({1, 2, 333});
-  a2.insert(a2.begin(), 1234);
-  it1 = a2.begin();
-  EXPECT_EQ(4, static_cast<int>(a2.size()));
-  EXPECT_EQ(1234, *it1++);
-  EXPECT_EQ(333, *it1++);
-  EXPECT_EQ(2, *it1++);
-  EXPECT_EQ(1, *it1++);
-}
-
-TEST(set, rend_greater) {
-  s21::set<int, std::greater<int>> a1 = {1, 2, 3};
-  s21::set<int, std::greater<int>>::reverse_iterator it = a1.rend();
-  EXPECT_EQ(3, *--it);
-}
-
-TEST(set, rbegin_greater) {
-  s21::set<int, std::greater<int>> a1 = {1, 2, 3};
-  s21::set<int, std::greater<int>>::reverse_iterator it = a1.rbegin();
-  EXPECT_EQ(1, *it);
 }
 
 TEST(set, begin_greater) {
@@ -1567,41 +1235,6 @@ TEST(set, emplace_greater) {
   EXPECT_EQ(false, a > a1);
 }
 
-TEST(set, lower_bound_greater) {
-  s21::set<int, std::greater<int>> a1 = {1, 2, 4, 5, 6, 55};
-  s21::set<int, std::greater<int>>::iterator it1 = a1.lower_bound(8);
-  EXPECT_EQ(6, *it1);
-  it1 = a1.lower_bound(4);
-  EXPECT_EQ(4, *it1);
-  it1 = a1.lower_bound(3);
-  EXPECT_EQ(2, *it1);
-}
-
-TEST(set, upper_bound_greater) {
-  s21::set<int, std::greater<int>> a1 = {1, 2, 4, 5, 6, 55};
-  s21::set<int, std::greater<int>>::iterator it1 = a1.upper_bound(8);
-  EXPECT_EQ(6, *it1);
-  it1 = a1.upper_bound(4);
-  EXPECT_EQ(2, *it1);
-  it1 = a1.upper_bound(3);
-  EXPECT_EQ(2, *it1);
-}
-
-TEST(set, equal_range_greater) {
-  s21::set<int, std::greater<int>> a1 = {1, 2, 4, 5, 6, 55};
-  std::pair<s21::set<int, std::greater<int>>::iterator,
-            s21::set<int, std::greater<int>>::iterator>
-      it1 = a1.equal_range(8);
-  EXPECT_EQ(6, *it1.first);
-  EXPECT_EQ(6, *it1.second);
-  it1 = a1.equal_range(4);
-  EXPECT_EQ(4, *it1.first);
-  EXPECT_EQ(2, *it1.second);
-  it1 = a1.equal_range(3);
-  EXPECT_EQ(2, *it1.first);
-  EXPECT_EQ(2, *it1.second);
-}
-
 TEST(set, find_greater) {
   s21::set<int, std::greater<int>> a1 = {1, 2, 4, 5, 6, 55};
   s21::set<int, std::greater<int>>::iterator it1 = a1.find(6);
@@ -1654,34 +1287,6 @@ TEST(list, const_iterator) {
   EXPECT_EQ("2", *--it);
   EXPECT_EQ("2", *it--);
   EXPECT_EQ("1", *it++);
-  EXPECT_EQ("2", *it);
-  EXPECT_EQ(true, it != it1);
-  EXPECT_EQ(true, --it == it1);
-}
-
-TEST(list, reverse_iterator) {
-  s21::list<std::string> a1 = {"1", "2", "3"};
-  s21::list<std::string>::reverse_iterator it = a1.rbegin();
-  s21::list<std::string>::reverse_iterator it1 = a1.rbegin();
-  EXPECT_EQ("3", *it++);
-  EXPECT_EQ("1", *++it);
-  EXPECT_EQ("2", *--it);
-  EXPECT_EQ("2", *it--);
-  EXPECT_EQ("3", *it++);
-  EXPECT_EQ("2", *it);
-  EXPECT_EQ(true, it != it1);
-  EXPECT_EQ(true, --it == it1);
-}
-
-TEST(list, const_reverse_iterator) {
-  s21::list<std::string> a1 = {"1", "2", "3"};
-  s21::list<std::string>::const_reverse_iterator it = a1.crbegin();
-  s21::list<std::string>::const_reverse_iterator it1 = a1.crbegin();
-  EXPECT_EQ("3", *it++);
-  EXPECT_EQ("1", *++it);
-  EXPECT_EQ("2", *--it);
-  EXPECT_EQ("2", *it--);
-  EXPECT_EQ("3", *it++);
   EXPECT_EQ("2", *it);
   EXPECT_EQ(true, it != it1);
   EXPECT_EQ(true, --it == it1);
@@ -1749,8 +1354,9 @@ TEST(list, insert) {
   EXPECT_EQ("2", *it1++);
   EXPECT_EQ("22", *it1++);
   EXPECT_EQ("3", *it1++);
-  it1 = a1.insert(it1, 8, "88");
-  EXPECT_EQ("3", *--it1);
+  a1.insert(it1, 8, "88");
+  it1 = a1.begin();
+  EXPECT_EQ("88", *--(--it1));
   EXPECT_EQ(13, static_cast<int>(a1.size()));
 
   s21::list<std::string> a2;
@@ -1827,36 +1433,6 @@ TEST(list, back_const) {
   const s21::list<int> a2 = {444, 2, 123};
   a = a2.back();
   EXPECT_EQ(a, 123);
-}
-
-TEST(list, rend) {
-  s21::list<int> a1 = {1, 2, 3};
-  s21::list<int>::reverse_iterator it = a1.rend();
-  EXPECT_EQ(1, *--it);
-}
-
-TEST(list, crend) {
-  const s21::list<int> a1 = {1, 2, 3};
-  s21::list<int>::const_reverse_iterator it = a1.crend();
-  EXPECT_EQ(1, *--it);
-}
-
-TEST(list, rend_const) {
-  const s21::list<int> a1 = {1, 2, 3};
-  s21::list<int>::const_reverse_iterator it = a1.rend();
-  EXPECT_EQ(1, *--it);
-}
-
-TEST(list, rbegin_const) {
-  const s21::list<int> a1 = {1, 2, 3};
-  s21::list<int>::const_reverse_iterator it = a1.rbegin();
-  EXPECT_EQ(3, *it);
-}
-
-TEST(list, rbegin) {
-  s21::list<int> a1 = {1, 2, 3};
-  s21::list<int>::reverse_iterator it = a1.rbegin();
-  EXPECT_EQ(3, *it);
 }
 
 TEST(list, begin) {
@@ -2149,36 +1725,8 @@ TEST(list, reverse) {
 
 TEST(list, splice) {
   s21::list<std::string> a = {"5", "5", "4", "3", "2", "1"};
-  s21::list<std::string> a1 = {"4", "34", "54"};
-  s21::list<std::string> a3 = {"5", "4", "34", "54", "5", "4", "3", "2", "1"};
-  a.splice(++a.begin(), a1, a1.begin(), a1.end());
-  EXPECT_EQ(true, a == a3);
-  EXPECT_EQ(false, a != a3);
-  EXPECT_EQ(false, a < a3);
-  EXPECT_EQ(true, a <= a3);
-  EXPECT_EQ(true, a >= a3);
-  EXPECT_EQ(false, a > a3);
-  EXPECT_EQ(static_cast<int>(a1.size()), 0);
-  EXPECT_EQ(static_cast<int>(a.size()), 9);
-}
-
-TEST(list, splice1) {
-  s21::list<std::string> a = {"5", "5", "4", "3", "2", "1"};
-  s21::list<std::string> a3 = {"5", "4", "3", "2", "1", "5"};
-  a.splice(a.begin(), a, ++a.begin(), a.end());
-  EXPECT_EQ(true, a == a3);
-  EXPECT_EQ(false, a != a3);
-  EXPECT_EQ(false, a < a3);
-  EXPECT_EQ(true, a <= a3);
-  EXPECT_EQ(true, a >= a3);
-  EXPECT_EQ(false, a > a3);
-  EXPECT_EQ(static_cast<int>(a.size()), 6);
-}
-
-TEST(list, splice3) {
-  s21::list<std::string> a = {"5", "5", "4", "3", "2", "1"};
   s21::list<std::string> a3 = {"5", "4", "3", "2", "5", "1"};
-  a.splice(--a.end(), a, ++a.begin());
+  a.splice(--a.cend(), a, ++a.cbegin());
 
   EXPECT_EQ(true, a == a3);
   EXPECT_EQ(false, a != a3);
@@ -2193,7 +1741,7 @@ TEST(list, splice2) {
   s21::list<std::string> a = {"5", "5", "4", "3", "2", "1"};
   s21::list<std::string> a1 = {"4", "34", "54"};
   s21::list<std::string> a3 = {"5", "4", "34", "54", "5", "4", "3", "2", "1"};
-  a.splice(++a.begin(), a1);
+  a.splice(++a.cbegin(), a1);
   EXPECT_EQ(true, a == a3);
   EXPECT_EQ(false, a != a3);
   EXPECT_EQ(false, a < a3);
@@ -2266,20 +1814,6 @@ TEST(vector, iterator) {
   EXPECT_EQ("2", *--it);
   EXPECT_EQ("2", *it--);
   EXPECT_EQ("1", *it++);
-  EXPECT_EQ("2", *it);
-  EXPECT_EQ(true, it != it1);
-  EXPECT_EQ(true, --it == it1);
-}
-
-TEST(vector, reverse_iterator) {
-  s21::vector<std::string> a1 = {"1", "2", "3"};
-  s21::vector<std::string>::reverse_iterator it = a1.rbegin();
-  s21::vector<std::string>::reverse_iterator it1 = a1.rbegin();
-  EXPECT_EQ("3", *it++);
-  EXPECT_EQ("1", *++it);
-  EXPECT_EQ("2", *--it);
-  EXPECT_EQ("2", *it--);
-  EXPECT_EQ("3", *it++);
   EXPECT_EQ("2", *it);
   EXPECT_EQ(true, it != it1);
   EXPECT_EQ(true, --it == it1);
@@ -2378,6 +1912,24 @@ TEST(vector, back) {
   EXPECT_EQ(r2, "44");
 }
 
+TEST(vector, date) {
+  s21::vector<int> a1 = {1, 2, 3};
+  int *a = a1.data();
+  EXPECT_EQ(*a, 1);
+  s21::vector<int> a2 = {444, 2, 3};
+  a = a2.data();
+  EXPECT_EQ(*a, 444);
+}
+
+TEST(vector, date_const) {
+  const s21::vector<int> a1 = {1, 2, 3};
+  const int *a = a1.data();
+  EXPECT_EQ(*a, 1);
+  const s21::vector<int> a2 = {444, 2, 3};
+  a = a2.data();
+  EXPECT_EQ(*a, 444);
+}
+
 TEST(vector, front1) {
   s21::vector<int> a1 = {1, 2, 3};
   int a = a1.front();
@@ -2433,38 +1985,6 @@ TEST(vector, at_const) {
   EXPECT_EQ(a, 2);
 }
 
-TEST(vector, rend) {
-  s21::vector<int> a1 = {1, 2, 3};
-  s21::vector<int>::reverse_iterator it = a1.rend();
-  EXPECT_EQ(1, *--it);
-
-  const s21::vector<int> a2 = {1, 2, 3};
-  s21::vector<int>::const_reverse_iterator it2 = a2.rend();
-  EXPECT_EQ(1, *--it2);
-}
-
-TEST(vector, crend) {
-  const s21::vector<int> a2 = {1, 2, 3};
-  s21::vector<int>::const_reverse_iterator it2 = a2.crend();
-  EXPECT_EQ(1, *--it2);
-}
-
-TEST(vector, rbegin) {
-  s21::vector<int> a1 = {1, 2, 3};
-  s21::vector<int>::reverse_iterator it = a1.rbegin();
-  EXPECT_EQ(3, *it);
-
-  const s21::vector<int> a2 = {1, 2, 3};
-  s21::vector<int>::const_reverse_iterator it2 = a2.rbegin();
-  EXPECT_EQ(3, *it2);
-}
-
-TEST(vector, crbegin) {
-  s21::vector<int> a2 = {1, 2, 3};
-  s21::vector<int>::const_reverse_iterator it2 = a2.crbegin();
-  EXPECT_EQ(3, *it2);
-}
-
 TEST(vector, begin) {
   s21::vector<int> a1 = {1, 2, 3};
   s21::vector<int>::iterator it = a1.begin();
@@ -2475,11 +1995,15 @@ TEST(vector, cbegin) {
   const s21::vector<int> a1 = {1, 2, 3};
   s21::vector<int>::const_iterator it = a1.cbegin();
   EXPECT_EQ(1, *it);
+
+  const s21::vector<int> a2 = {1, 2, 3};
+  s21::vector<int>::const_iterator it1 = a2.begin();
+  EXPECT_EQ(1, *it1);
 }
 
 TEST(vector, cend) {
-  s21::vector<std::string> a1 = {"1", "2", "3"};
-  s21::vector<std::string>::iterator it = a1.end();
+  const s21::vector<std::string> a1 = {"1", "2", "3"};
+  s21::vector<std::string>::const_iterator it = a1.end();
   EXPECT_EQ("3", *--it);
 }
 
@@ -2631,7 +2155,7 @@ TEST(vector, shrink_to_fit) {
 TEST(vector, reserve) {
   s21::vector<std::string> a1(3, "cc");
   a1.reserve(7);
-  EXPECT_EQ(7, static_cast<int>(a1.size()));
+  EXPECT_EQ(3, static_cast<int>(a1.size()));
   EXPECT_EQ(7, static_cast<int>(a1.capacity()));
 }
 
@@ -2710,12 +2234,6 @@ TEST(vector, emplace) {
   s21::vector<std::string> a = {"1"};
   s21::vector<std::string> a1 = {"1", "2", "3", "4"};
   a.emplace(a.end(), "2", "3", "4");
-  // s21::vector<std::string>::iterator it = a.begin();
-
-  // while (it != a.end()) {
-  //   std::cout << *it++ << std::endl;
-  // }
-
   EXPECT_EQ(true, a == a1);
   EXPECT_EQ(false, a != a1);
   EXPECT_EQ(false, a < a1);
@@ -2740,12 +2258,12 @@ TEST(vector, emplace_front) {
   s21::vector<std::string> a = {"4"};
   s21::vector<std::string> a1 = {"1", "2", "3", "4"};
   a.emplace_front("1", "2", "3");
-  // EXPECT_EQ(true, a == a1);
-  // EXPECT_EQ(false, a != a1);
-  // EXPECT_EQ(false, a < a1);
-  // EXPECT_EQ(true, a <= a1);
-  // EXPECT_EQ(true, a >= a1);
-  // EXPECT_EQ(false, a > a1);
+  EXPECT_EQ(true, a == a1);
+  EXPECT_EQ(false, a != a1);
+  EXPECT_EQ(false, a < a1);
+  EXPECT_EQ(true, a <= a1);
+  EXPECT_EQ(true, a >= a1);
+  EXPECT_EQ(false, a > a1);
 }
 
 TEST(multiset, test_iq) {
@@ -2776,55 +2294,33 @@ TEST(multiset, iterator) {
   EXPECT_EQ(true, --it == it1);
 }
 
-TEST(multiset, reverse_iterator) {
-  s21::multiset<std::string> a1 = {"1", "2", "3"};
-  s21::multiset<std::string>::reverse_iterator it = a1.rbegin();
-  s21::multiset<std::string>::reverse_iterator it1 = a1.rbegin();
-  EXPECT_EQ("3", *it++);
-  EXPECT_EQ("1", *++it);
-  EXPECT_EQ("2", *--it);
-  EXPECT_EQ("2", *it--);
-  EXPECT_EQ("3", *it++);
-  EXPECT_EQ("2", *it);
-  EXPECT_EQ(true, it != it1);
-  EXPECT_EQ(true, --it == it1);
-}
-
 TEST(multiset, erase) {
   s21::multiset<std::string> a1 = {"1", "2", "2", "3", "3", "4", "4", "1", "4"};
   s21::multiset<std::string>::iterator it = ++(a1.begin());
   it++;
   it++;
-  it = a1.erase(it);
-  EXPECT_EQ("3", *it++);
-  EXPECT_EQ("3", *it--);
-  it = a1.erase(it);
-  EXPECT_EQ("3", *it);
-  it = a1.erase(it);
-  EXPECT_EQ("4", *it);
-  it = a1.erase(it);
-  EXPECT_EQ("4", *it);
-  it = a1.erase(it);
-  EXPECT_EQ("4", *it);
-  it = a1.erase(it);
-  EXPECT_EQ("1", *++it);
-  EXPECT_EQ(3, static_cast<int>(a1.size()));
+  a1.erase(it);
+  it = ++a1.find("2");
+  a1.erase(it);
+  it = a1.find("4");
+  a1.erase(it);
+  it = a1.find("4");
+  a1.erase(it);
 
-  s21::multiset<int> a2 = {1, 5, 3, 4, 5, 1, 5, 1, 5, 3};
-  EXPECT_EQ(10, static_cast<int>(a2.size()));
-  a2.erase(1);
-  EXPECT_EQ(7, static_cast<int>(a2.size()));
-  a2.erase(5);
-  EXPECT_EQ(3, static_cast<int>(a2.size()));
+  std::multiset<std::string> a2 = {"1", "2", "2", "3", "3", "4", "4", "1", "4"};
+  std::multiset<std::string>::iterator it2 = ++(a2.begin());
+  it2++;
+  it2++;
+  a2.erase(it2);
+  it2 = ++a2.find("2");
+  a2.erase(it2);
+  it2 = a2.find("4");
+  a2.erase(it2);
+  it2 = a2.find("4");
+  a2.erase(it2);
+  Comparison(a1, a2);
 
-  s21::multiset<int> a3 = {1, 2, 3, 3, 3, 3, 3, 2, 2,
-                           4, 2, 3, 4, 4, 5, 6, 7, 8};
-  s21::multiset<int>::iterator it3 = a3.begin();
-  EXPECT_EQ(18, static_cast<int>(a3.size()));
-  it3 = a3.erase(++it3, --a3.end());
-  EXPECT_EQ(2, static_cast<int>(a3.size()));
-  EXPECT_EQ(8, *it3--);
-  EXPECT_EQ(1, *it3);
+  EXPECT_EQ(0, Comparison(a1, a2));
 }
 
 TEST(multiset, clear) {
@@ -2836,11 +2332,10 @@ TEST(multiset, clear) {
 TEST(multiset, insert) {
   s21::multiset<int> a1 = {1, 2, 3};
   s21::multiset<int>::iterator it1 = a1.begin();
-  std::pair<s21::multiset<int>::iterator, bool> pa;
-  pa = a1.insert(33);
-  EXPECT_EQ(33, *pa.first);
+  s21::multiset<int>::iterator pa = a1.insert(33);
+  EXPECT_EQ(33, *pa);
   pa = a1.insert(22);
-  EXPECT_EQ(22, *pa.first);
+  EXPECT_EQ(22, *pa);
   it1 = a1.begin();
   EXPECT_EQ(1, *it1++);
   EXPECT_EQ(2, *it1++);
@@ -2848,26 +2343,12 @@ TEST(multiset, insert) {
   EXPECT_EQ(22, *it1++);
   EXPECT_EQ(33, *it1++);
   pa = a1.insert(88);
-  EXPECT_EQ(88, *pa.first);
-  EXPECT_EQ(6, static_cast<int>(a1.size()));
-
-  s21::multiset<int> a2;
-  a2.insert(++a1.begin(), --a1.end());
-  it1 = a2.begin();
-  EXPECT_EQ(2, *it1++);
-  EXPECT_EQ(3, *it1++);
-  EXPECT_EQ(22, *it1++);
-  EXPECT_EQ(33, *it1++);
-  EXPECT_EQ(4, static_cast<int>(a2.size()));
-  a2.clear();
-  a2.insert({1, 2, 333});
-  a2.insert(--a2.end(), 1234);
-  it1 = a2.begin();
-  EXPECT_EQ(4, static_cast<int>(a2.size()));
-  EXPECT_EQ(1, *it1++);
-  EXPECT_EQ(2, *it1++);
-  EXPECT_EQ(333, *it1++);
-  EXPECT_EQ(1234, *it1++);
+  EXPECT_EQ(88, *pa);
+  pa = a1.insert(33);
+  EXPECT_EQ(88, *++pa);
+  pa = a1.insert(33);
+  EXPECT_EQ(88, *++pa);
+  EXPECT_EQ(8, static_cast<int>(a1.size()));
 }
 
 TEST(multiset, lower_bound_const) {
@@ -2905,6 +2386,19 @@ TEST(multiset, equal_range_const) {
   EXPECT_EQ(4, *it1.second);
 }
 
+TEST(multiset, merge) {
+  s21::multiset<std::string> a = {"2", "5", "1"};
+  s21::multiset<std::string> a2 = {"1", "3", "4", "5"};
+  s21::multiset<std::string> a1 = {"1", "1", "2", "3", "4", "5", "5"};
+  a.merge(a2);
+  EXPECT_EQ(true, a == a1);
+  EXPECT_EQ(false, a != a1);
+  EXPECT_EQ(false, a < a1);
+  EXPECT_EQ(true, a <= a1);
+  EXPECT_EQ(true, a >= a1);
+  EXPECT_EQ(false, a > a1);
+}
+
 TEST(multiset, find_const) {
   const s21::multiset<int> a1 = {1, 2, 4, 5, 6, 55};
   s21::multiset<int>::const_iterator it1 = a1.find(6);
@@ -2937,30 +2431,6 @@ TEST(multiset, end_const) {
   EXPECT_EQ("3", *--it);
 }
 
-TEST(multiset, rbegin_const) {
-  const s21::multiset<int> a1 = {1, 2, 3};
-  s21::multiset<int>::const_reverse_iterator it = a1.rbegin();
-  EXPECT_EQ(3, *it);
-}
-
-TEST(multiset, rend_const) {
-  const s21::multiset<std::string> a1 = {"1", "2", "3"};
-  s21::multiset<std::string>::const_reverse_iterator it = a1.rend();
-  EXPECT_EQ("1", *--it);
-}
-
-TEST(multiset, crbegin) {
-  const s21::multiset<int> a1 = {1, 2, 3};
-  s21::multiset<int>::const_reverse_iterator it = a1.crbegin();
-  EXPECT_EQ(3, *it);
-}
-
-TEST(multiset, crend) {
-  const s21::multiset<std::string> a1 = {"1", "2", "3"};
-  s21::multiset<std::string>::const_reverse_iterator it = a1.crend();
-  EXPECT_EQ("1", *--it);
-}
-
 TEST(multiset, move) {
   s21::multiset<int> a1 = {1, 2, 3};
   s21::multiset<int> a2(std::move(a1));
@@ -2971,18 +2441,6 @@ TEST(multiset, move) {
   a2 = std::move(a3);
   it = a2.begin();
   EXPECT_EQ(8, *it);
-}
-
-TEST(multiset, rend) {
-  s21::multiset<int> a1 = {1, 2, 3};
-  s21::multiset<int>::reverse_iterator it = a1.rend();
-  EXPECT_EQ(1, *--it);
-}
-
-TEST(multiset, rbegin) {
-  s21::multiset<int> a1 = {1, 2, 3};
-  s21::multiset<int>::reverse_iterator it = a1.rbegin();
-  EXPECT_EQ(3, *it);
 }
 
 TEST(multiset, begin) {
@@ -3166,6 +2624,13 @@ TEST(multiset, find) {
   EXPECT_EQ(4, *it1);
 }
 
+TEST(multiset, contains) {
+  s21::multiset<int> a1 = {1, 2, 4, 5, 6, 55, 55, 55};
+  EXPECT_EQ(true, a1.contains(4));
+  EXPECT_EQ(false, a1.contains(42));
+  EXPECT_EQ(true, a1.contains(55));
+}
+
 TEST(multiset, count) {
   s21::multiset<int> a1 = {1, 2, 4, 5, 6, 55, 6, 6, 66, 4};
   EXPECT_EQ(3, static_cast<int>(static_cast<int>(a1.count(6))));
@@ -3202,60 +2667,26 @@ TEST(multiset, iterator_greater) {
   EXPECT_EQ(true, --it == it1);
 }
 
-TEST(multiset, reverse_iterator_greater) {
-  s21::multiset<int, std::greater<int>> a1 = {1, 2, 3};
-  s21::multiset<int, std::greater<int>>::reverse_iterator it = a1.rbegin();
-  s21::multiset<int, std::greater<int>>::reverse_iterator it1 = a1.rbegin();
-  EXPECT_EQ(1, *it++);
-  EXPECT_EQ(3, *++it);
-  EXPECT_EQ(2, *--it);
-  EXPECT_EQ(2, *it--);
-  EXPECT_EQ(1, *it++);
-  EXPECT_EQ(2, *it);
-  EXPECT_EQ(true, it != it1);
-  EXPECT_EQ(true, --it == it1);
-}
-
 TEST(multiset, erase_greater) {
   s21::multiset<int, std::greater<int>> a1 = {
       3123, 12, 23123, 312, 31, 2313, 213, 1, 64, 456, 45, 37, 8};
-  s21::multiset<int, std::greater<int>>::iterator it = a1.begin();
-  it = a1.erase(a1.find(312));
-  EXPECT_EQ(213, *it);
-  it = a1.erase(a1.find(31));
-  EXPECT_EQ(12, *it);
-  it = a1.erase(a1.find(37));
-  EXPECT_EQ(12, *it);
-  it = a1.erase(it);
-  EXPECT_EQ(8, *it);
-  it = a1.erase(it);
-  EXPECT_EQ(1, *it);
-  it++;
-  it++;
-  it = a1.erase(it);
-  EXPECT_EQ(3123, *it);
+  a1.erase(a1.find(312));
+  a1.erase(a1.find(31));
+  a1.erase(a1.find(37));
+  a1.erase(a1.find(12));
+  a1.erase(a1.find(1));
+  a1.erase(a1.find(8));
 
-  s21::multiset<int, std::greater<int>> a2 = {1, 2, 3, 4, 5, 6, 7, 8};
-  s21::multiset<int, std::greater<int>>::iterator it2 = a2.begin();
-  it2 = a2.erase(it2);
-  EXPECT_EQ(7, *it2);
-  it2 = a2.erase(it2);
-  it2++;
-  it2++;
-  it2 = a2.erase(it2);
-  EXPECT_EQ(3, *it2);
+  std::multiset<int, std::greater<int>> a2 = {
+      3123, 12, 23123, 312, 31, 2313, 213, 1, 64, 456, 45, 37, 8};
+  a2.erase(a2.find(312));
+  a2.erase(a2.find(31));
+  a2.erase(a2.find(37));
+  a2.erase(a2.find(12));
+  a2.erase(a2.find(1));
+  a2.erase(a2.find(8));
 
-  s21::multiset<int, std::greater<int>> a3 = {1, 2, 3, 4, 5, 6, 7, 8};
-  s21::multiset<int, std::greater<int>>::iterator it3 = a3.begin();
-  it3 = a3.erase(++it3, --a3.end());
-  EXPECT_EQ(1, *it3);
-  it3 = a3.begin();
-  EXPECT_EQ(8, *it3);
-  it3 = a3.erase(it3);
-  EXPECT_EQ(1, *it3);
-  EXPECT_EQ(static_cast<int>(a3.size()), 1);
-  a3.erase(it3);
-  EXPECT_EQ(static_cast<int>(a3.size()), 0);
+  EXPECT_EQ(0, Comparison(a1, a2));
 }
 
 TEST(multiset, clear_greater) {
@@ -3267,11 +2698,10 @@ TEST(multiset, clear_greater) {
 TEST(multiset, insert_greater) {
   s21::multiset<int, std::greater<int>> a1 = {1, 2, 3};
   s21::multiset<int, std::greater<int>>::iterator it1 = a1.begin();
-  std::pair<s21::multiset<int, std::greater<int>>::iterator, bool> pa;
-  pa = a1.insert(33);
-  EXPECT_EQ(33, *pa.first);
+  s21::multiset<int, std::greater<int>>::iterator pa = a1.insert(33);
+  EXPECT_EQ(33, *pa);
   pa = a1.insert(22);
-  EXPECT_EQ(22, *pa.first);
+  EXPECT_EQ(22, *pa);
   it1 = a1.begin();
   EXPECT_EQ(33, *it1++);
   EXPECT_EQ(22, *it1++);
@@ -3279,38 +2709,8 @@ TEST(multiset, insert_greater) {
   EXPECT_EQ(2, *it1++);
   EXPECT_EQ(1, *it1++);
   pa = a1.insert(88);
-  EXPECT_EQ(88, *pa.first);
+  EXPECT_EQ(88, *pa);
   EXPECT_EQ(6, static_cast<int>(a1.size()));
-
-  s21::multiset<int, std::greater<int>> a2;
-  a2.insert(++a1.begin(), --a1.end());
-  it1 = a2.begin();
-  EXPECT_EQ(33, *it1++);
-  EXPECT_EQ(22, *it1++);
-  EXPECT_EQ(3, *it1++);
-  EXPECT_EQ(2, *it1++);
-  EXPECT_EQ(4, static_cast<int>(a2.size()));
-  a2.clear();
-  a2.insert({1, 2, 333});
-  a2.insert(a2.begin(), 1234);
-  it1 = a2.begin();
-  EXPECT_EQ(4, static_cast<int>(a2.size()));
-  EXPECT_EQ(1234, *it1++);
-  EXPECT_EQ(333, *it1++);
-  EXPECT_EQ(2, *it1++);
-  EXPECT_EQ(1, *it1++);
-}
-
-TEST(multiset, rend_greater) {
-  s21::multiset<int, std::greater<int>> a1 = {1, 2, 3};
-  s21::multiset<int, std::greater<int>>::reverse_iterator it = a1.rend();
-  EXPECT_EQ(3, *--it);
-}
-
-TEST(multiset, rbegin_greater) {
-  s21::multiset<int, std::greater<int>> a1 = {1, 2, 3};
-  s21::multiset<int, std::greater<int>>::reverse_iterator it = a1.rbegin();
-  EXPECT_EQ(1, *it);
 }
 
 TEST(multiset, begin_greater) {
@@ -3530,7 +2930,7 @@ TEST(array, fill) {
 }
 
 TEST(array, empty) {
-  s21::array<int, 3> a1 = {1, 2, 3};
+  s21::array<int, 15> a1 = {1, 3, 34,5,6,4};
   s21::array<int, 0> a2;
   EXPECT_EQ(a1.empty(), false);
   EXPECT_EQ(a2.empty(), true);
@@ -3552,9 +2952,9 @@ TEST(array, front) {
   s21::array<int, 3> a1 = {1, 2, 3};
   int a = a1.front();
   EXPECT_EQ(a, 1);
-  s21::array<int, 3> a2 = {444, 2, 3};
-  a = a2.front();
-  EXPECT_EQ(a, 444);
+  const s21::array<int, 3> a2 = {444, 2, 3};
+  const int a3 = a2.front();
+  EXPECT_EQ(a3, 444);
 }
 
 TEST(array, back) {
@@ -3587,42 +2987,6 @@ TEST(array, at_const) {
   EXPECT_EQ(a, 2);
 }
 
-TEST(array, rend) {
-  s21::array<int, 3> a1 = {1, 2, 3};
-  s21::array<int, 3>::reverse_iterator it = a1.rend();
-  EXPECT_EQ(1, *--it);
-}
-
-TEST(array, rend_const) {
-  const s21::array<int, 3> a1 = {1, 2, 3};
-  s21::array<int, 3>::const_reverse_iterator it = a1.rend();
-  EXPECT_EQ(1, *--it);
-}
-
-TEST(array, crend) {
-  const s21::array<int, 3> a1 = {1, 2, 3};
-  s21::array<int, 3>::const_reverse_iterator it = a1.crend();
-  EXPECT_EQ(1, *--it);
-}
-
-TEST(array, rbegin) {
-  s21::array<int, 3> a1 = {1, 2, 3};
-  s21::array<int, 3>::reverse_iterator it = a1.rbegin();
-  EXPECT_EQ(3, *it);
-}
-
-TEST(array, rbegin_const) {
-  const s21::array<int, 3> a1 = {1, 2, 3};
-  s21::array<int, 3>::const_reverse_iterator it = a1.rbegin();
-  EXPECT_EQ(3, *it);
-}
-
-TEST(array, crbegin) {
-  const s21::array<int, 3> a1 = {1, 2, 3};
-  s21::array<int, 3>::const_reverse_iterator it = a1.crbegin();
-  EXPECT_EQ(3, *it);
-}
-
 TEST(array, begin) {
   s21::array<int, 3> a1 = {1, 2, 3};
   s21::array<int, 3>::iterator it = a1.begin();
@@ -3646,6 +3010,9 @@ TEST(array, cend) {
   s21::array<std::string, 3> a1(a);
   s21::array<std::string, 3>::const_iterator it = a1.cend();
   EXPECT_EQ("3", *--it);
+  const s21::array<std::string, 3> a2 = {"1", "2", "3"};
+  s21::array<std::string, 3>::const_iterator it1 = a2.end();
+  EXPECT_EQ("3", *--it1);
 }
 
 TEST(array, test_iq) {
@@ -3688,46 +3055,13 @@ TEST(array, iterator) {
   EXPECT_EQ(true, --it == it1);
 }
 
-TEST(array, reverse_iterator) {
-  s21::array<std::string, 3> a1 = {"1", "2", "3"};
-  s21::array<std::string, 3>::reverse_iterator it = a1.rbegin();
-  s21::array<std::string, 3>::reverse_iterator it1 = a1.rbegin();
-  EXPECT_EQ("3", *it++);
-  EXPECT_EQ("1", *++it);
-  EXPECT_EQ("2", *--it);
-  EXPECT_EQ("2", *it--);
-  EXPECT_EQ("3", *it++);
-  EXPECT_EQ("2", *it);
-  EXPECT_EQ(true, it != it1);
-  EXPECT_EQ(true, --it == it1);
-}
-
 TEST(array, const_iterator) {
   const s21::array<std::string, 3> a1 = {"1", "2", "3"};
   s21::array<std::string, 3>::const_iterator it1 = a1.begin();
   EXPECT_EQ("2", *++it1);
 }
 
-TEST(array, const_reverse_iterator) {
-  const s21::array<std::string, 3> a1 = {"1", "2", "3"};
-  s21::array<std::string, 3>::const_reverse_iterator it = a1.rbegin();
-  s21::array<std::string, 3>::const_reverse_iterator it1 = std::move(it);
-  EXPECT_EQ("3", *it1++);
-  EXPECT_EQ("2", *it1);
-}
-
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }
-
-// int main() {
-//   s21::vector<std::string> a = {"1"};
-//   a.emplace(a.end(), "2d", "3d", "4d");
-//   s21::vector<std::string>::iterator e = a.begin();
-//   while (e != a.end()) {
-//     std::cout << *e++ << std::endl;
-//   }
-
-//   return 0;
-// }
