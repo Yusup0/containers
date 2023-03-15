@@ -579,6 +579,7 @@ TEST(map, at) {
   EXPECT_EQ(35, a1.at(3));
   a1.at(3) = 99;
   EXPECT_EQ(99, a1.at(3));
+  EXPECT_THROW(a1.at(55), std::out_of_range);
 }
 
 TEST(map, at_const) {
@@ -2020,6 +2021,7 @@ TEST(vector, at) {
   s21::vector<int> a1 = {1, 2, 3};
   int a = a1.at(1);
   EXPECT_EQ(a, 2);
+  EXPECT_THROW(a1.at(55), std::out_of_range);
 }
 
 TEST(vector, at_const) {
@@ -3055,6 +3057,7 @@ TEST(array, at) {
   s21::array<int, 3> a1 = {1, 2, 3};
   int a = a1.at(1);
   EXPECT_EQ(a, 2);
+  EXPECT_THROW(a1.at(55), std::out_of_range);
 }
 
 TEST(array, at_const) {
