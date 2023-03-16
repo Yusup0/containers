@@ -211,11 +211,16 @@ class list {
   void AddValue(StructList<T> *position, StructList<T> *value);
   void AddList(StructList<T> *position, StructList<T> *first,
                StructList<T> *last) noexcept;
-  void ArgumentParser([[maybe_unused]] StructList<T> *position) {}
-  void BindList(StructList<T> *begin, StructList<T> *end) const noexcept;
+  /**
+   * @brief Рекурсивно вставляет по одному элементу в дерево. Когда элементы
+   * закончились, выходит из рекурсии с помощью следующего метода
+   */
   template <class... Other>
   void ArgumentParser(StructList<T> *position, value_type &&first,
                       Other... other);
+  void ArgumentParser([[maybe_unused]] StructList<T> *position) {}
+  void BindList(StructList<T> *begin, StructList<T> *end) const noexcept;
+
   template <class InputIterator>
   void CopyList(InputIterator first, InputIterator last);
 };

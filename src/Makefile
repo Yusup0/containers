@@ -21,4 +21,4 @@ clean:
 
 check:
 	clang-format -i -style=Google *.h
-	clang-format -i -style=Google test/*.cc
+	clang-format -i -style=Google testm/*.cc

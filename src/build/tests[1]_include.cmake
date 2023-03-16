@@ -1,0 +1,5 @@
+if(EXISTS "/home/usup/Desktop/CPP2_s21_containers-0/src/build/tests[1]_tests.cmake")
+  include("/home/usup/Desktop/CPP2_s21_containers-0/src/build/tests[1]_tests.cmake")
+else()
+  add_test(tests_NOT_BUILT tests_NOT_BUILT)
+endif()

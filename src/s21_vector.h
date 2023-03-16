@@ -96,11 +96,15 @@ class vector {
   size_type size_;
   size_type capacity_;
   int ComparisonVector(vector &other) const;
-  inline void ArgumentParser([[maybe_unused]] size_type position) {}
-  void CopyList(std::initializer_list<value_type> init_list);
-  void CopyPtr(const vector &other);
+  /**
+   * @brief Рекурсивно вставляет по одному элементу в дерево. Когда элементы
+   * закончились, выходит из рекурсии с помощью следующего метода
+   */
   template <class... Other>
   void ArgumentParser(size_type position, value_type &&first, Other... other);
+  inline void ArgumentParser([[maybe_unused]] size_type position) {}
+  void CopyList(std::initializer_list<value_type> init_list);
+
   void FreeMemory();
   void ChangeCapacity(size_type size);
 };
@@ -473,7 +477,8 @@ typename vector<T>::const_iterator vector<T>::cbegin() const noexcept {
 }
 
 template <class T>
-void vector<T>::CopyPtr(const vector &other) {
+vector<T>::vector(const vector &other) {
+  if (!other.capacity_) return;
   ptr_ = new value_type[other.capacity_];
   try {
     for (size_type i = 0; i < other.size_; i++) ptr_[i] = other.ptr_[i];
@@ -484,11 +489,6 @@ void vector<T>::CopyPtr(const vector &other) {
   }
   size_ = other.size();
   capacity_ = other.capacity();
-}
-
-template <class T>
-vector<T>::vector(const vector &other) {
-  if (other.capacity_) CopyPtr(other);
 }
 
 template <class T>

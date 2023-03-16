@@ -1,7 +1,6 @@
 #ifndef CONTAINERS_SRC_GENERAL_H_
 #define CONTAINERS_SRC_GENERAL_H_
 
-
 #include <limits>
 #include <vector>
 
@@ -12,6 +11,9 @@ class BTree;
 template <class T, class Compare>
 class IteratorGeneralConst;
 
+/**
+ * @brief Узел бинарного дерева
+ */
 template <class Key>
 struct StructGeneral {
   StructGeneral() = delete;
@@ -22,6 +24,9 @@ struct StructGeneral {
   size_t count_ = 1;
 };
 
+/**
+ * @brief Ближайший по значению правый элемент
+ */
 template <class Struct>
 Struct *ClosestRight(Struct *value) noexcept {
   Struct *result;
@@ -39,6 +44,9 @@ Struct *ClosestRight(Struct *value) noexcept {
   return result;
 }
 
+/**
+ * @brief Ближайший по значению левый элемент
+ */
 template <class Struct>
 Struct *ClosestLeft(Struct *value) noexcept {
   Struct *result;
@@ -238,12 +246,12 @@ class BTree {
     delete anchor_;
   }
 
-  bool operator<(BTree &other) const { return ComparisonList(other) == -1; }
-  bool operator>(BTree &other) const { return ComparisonList(other) == 1; }
-  bool operator==(BTree &other) const { return !ComparisonList(other); }
-  bool operator!=(BTree &other) const { return ComparisonList(other); }
-  bool operator<=(BTree &other) const { return ComparisonList(other) != 1; }
-  bool operator>=(BTree &other) const { return ComparisonList(other) != -1; }
+  bool operator<(BTree &other) const { return ComparisonBTee(other) == -1; }
+  bool operator>(BTree &other) const { return ComparisonBTee(other) == 1; }
+  bool operator==(BTree &other) const { return !ComparisonBTee(other); }
+  bool operator!=(BTree &other) const { return ComparisonBTee(other); }
+  bool operator<=(BTree &other) const { return ComparisonBTee(other) != 1; }
+  bool operator>=(BTree &other) const { return ComparisonBTee(other) != -1; }
 
   template <class... Args>
   std::vector<std::pair<iterator, bool>> emplace(bool need_duplicates,
@@ -391,11 +399,11 @@ class BTree {
   const_iterator end() const noexcept { return anchor_; }
 
   iterator begin() noexcept {
-    return anchor_->right_ ? Smallest(anchor_->right_) : anchor_;
+    return anchor_->right_ ? Leftmost(anchor_->right_) : anchor_;
   }
 
   const_iterator begin() const noexcept {
-    return anchor_->right_ ? Smallest(anchor_->right_) : anchor_;
+    return anchor_->right_ ? Leftmost(anchor_->right_) : anchor_;
   }
 
  private:
@@ -405,6 +413,15 @@ class BTree {
 
   size_t size_ = 0;
 
+  /**
+   * @brief Вставляет узел в дерево
+   *
+   * @param wheere место откуда начинается поиск позиции для value
+   * @param value значение которое нужно вставить
+   * @param need_duplicates = true в дерево можно вставить дубликаты
+   * @return pair в котором итератор указывающий на место вставки и bool
+   * переменная которая true при удачной вставке
+   */
   std::pair<iterator, bool> InsertStandart(StructGeneral<Key> *wheere,
                                            const Key &value,
                                            bool need_duplicates = false) {
@@ -442,6 +459,12 @@ class BTree {
                                      is_add);
   }
 
+  /**
+   * @brief удаляет узел из дерева
+   *
+   * @param position позиция узла
+   * @return Узел ближайший правый по значению
+   */
   StructGeneral<Key> *Erase(StructGeneral<Key> *position) {
     if (position == anchor_) return anchor_;
     StructGeneral<Key> *parent_ = position->parent_;
@@ -480,6 +503,9 @@ class BTree {
     return result;
   }
 
+  /**
+   * @brief Поиск узла по значению
+   */
   StructGeneral<Key> *FindPosition(StructGeneral<Key> *root,
                                    const Key &value) const noexcept {
     StructGeneral<Key> *pos = root;
@@ -499,7 +525,10 @@ class BTree {
     return pos;
   }
 
-  int ComparisonList(const BTree &other) const {
+  /**
+   * @brief Сравнение двух деревьев
+   */
+  int ComparisonBTee(const BTree &other) const {
     int res = 0;
     size_t size1 = size(), size2 = other.size();
     const_iterator our_it = begin();
@@ -518,6 +547,10 @@ class BTree {
     return (comp_(l, r) + comp_(r, l)) == 1;
   }
 
+  /**
+   * @brief Рекурсивно вставляет по одному элементу в дерево. Когда элементы
+   * закончились, выходит из рекурсии с помощью следующего метода
+   */
   template <class... Other>
   void ArgumentParser(std::vector<std::pair<iterator, bool>> &result,
                       bool need_duplicates, Key &&first, Other... other) {
@@ -529,7 +562,7 @@ class BTree {
       [[maybe_unused]] std::vector<std::pair<iterator, bool>> &result,
       [[maybe_unused]] bool need_duplicates) {}
 
-  StructGeneral<Key> *Smallest(StructGeneral<Key> *value) const {
+  StructGeneral<Key> *Leftmost(StructGeneral<Key> *value) const {
     while (value->left_ != nullptr) value = value->left_;
     return value;
   }
@@ -541,6 +574,9 @@ class BTree {
     return result;
   }
 
+  /**
+   * @brief Меняет две ноды местами указателями
+   */
   void swap_node(StructGeneral<Key> *first,
                  StructGeneral<Key> *second) noexcept {
     if (first->parent_->right_ == first) {
@@ -565,6 +601,9 @@ class BTree {
     if (anchor_->right_ == second) anchor_->left_ = second;
   }
 
+  /**
+   * @brief Балансировка дерева при вставке
+   */
   void Adjustment(StructGeneral<Key> *value) {
     StructGeneral<Key> *parent_ = value->parent_;
     if ((parent_->right_ != nullptr && parent_->right_->is_red_ == true) &&
