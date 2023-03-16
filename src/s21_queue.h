@@ -21,7 +21,7 @@ class queue {
 
   queue() = default;
   queue(std::initializer_list<value_type> const &items);
-  void swap(queue& other) noexcept;
+  void swap(queue &other) noexcept;
   template <class ContainerOther>
   queue(const ContainerOther &right);
   bool empty() const noexcept;
@@ -40,8 +40,8 @@ class queue {
 };
 
 template <class T, class Container>
-void queue<T, Container>::swap(queue& other) noexcept {
- queue_.swap(other.queue_);
+void queue<T, Container>::swap(queue &other) noexcept {
+  queue_.swap(other.queue_);
 }
 
 template <class T, class Container>
@@ -51,8 +51,8 @@ queue<T, Container>::queue(const ContainerOther &right) {
 }
 
 template <class T, class Container>
-queue<T, Container>::queue(std::initializer_list<value_type> const &items) : queue_(items) {}
-
+queue<T, Container>::queue(std::initializer_list<value_type> const &items)
+    : queue_(items) {}
 
 template <class T, class Container>
 bool queue<T, Container>::empty() const noexcept {

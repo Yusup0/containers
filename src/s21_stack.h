@@ -23,7 +23,7 @@ class stack {
 
   stack() = default;
   stack(std::initializer_list<value_type> const &items);
-  void swap(stack& other) noexcept;
+  void swap(stack &other) noexcept;
   template <class ContainerOther>
   stack(const ContainerOther &right);
   bool empty() const noexcept;
@@ -40,7 +40,7 @@ class stack {
 };
 
 template <class T, class Container>
-void stack<T, Container>::swap(stack& other) noexcept {
+void stack<T, Container>::swap(stack &other) noexcept {
   return stack_.swap(other.stack_);
 }
 
@@ -56,7 +56,8 @@ void stack<T, Container>::pop() {
 }
 
 template <class T, class Container>
-stack<T, Container>::stack(std::initializer_list<value_type> const &items) : stack_(items) {}
+stack<T, Container>::stack(std::initializer_list<value_type> const &items)
+    : stack_(items) {}
 
 template <class T, class Container>
 void stack<T, Container>::push(const_reference value) {

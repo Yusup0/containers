@@ -16,6 +16,7 @@ struct My_Compare {
   bool operator()(const T &l, const T &r) const {
     return comp_(l.first, r.first);
   }
+
  private:
   Compare comp_;
 };

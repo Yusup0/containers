@@ -1,7 +1,6 @@
 #ifndef S21_CONTAINERS_SRC_MULTISET_H_
 #define S21_CONTAINERS_SRC_MULTISET_H_
 
-
 #include <stdlib.h>
 
 #include <iostream>

@@ -542,7 +542,8 @@ class BTree {
     return result;
   }
 
-  void swap_node(StructGeneral<Key> *first, StructGeneral<Key> *second) noexcept {
+  void swap_node(StructGeneral<Key> *first,
+                 StructGeneral<Key> *second) noexcept {
     if (first->parent_->right_ == first) {
       first->parent_->right_ = second;
     } else {
@@ -557,7 +558,7 @@ class BTree {
     std::swap(first->left_, second->left_);
     std::swap(first->right_, second->right_);
     std::swap(first->parent_, second->parent_);
-    
+
     if (first->left_) first->left_->parent_ = first;
     if (first->right_) first->right_->parent_ = first;
     if (second->left_) second->left_->parent_ = second;
