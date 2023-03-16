@@ -1,12 +1,6 @@
 #ifndef S21_CONTAINERS_SRC_STACK_H_
 #define S21_CONTAINERS_SRC_STACK_H_
 
-// 1) Т.к. в основном всё зависит от list - пофиксите list и тут скорее всего
-// всё будет ок 2) emplace надо грамотно перенаправить в используемый контейнер,
-// сейчас не так 3) Не реализовали stack(std::initializer_list<value_type> const
-// &items) - а по заданию надо 4) Не реализовали void swap(stack& other) - а по
-// заданию надо
-
 #include <iostream>
 
 #include "./s21_list.h"

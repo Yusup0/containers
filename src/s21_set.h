@@ -1,14 +1,12 @@
 #ifndef S21_CONTAINERS_SRC_SET_H_
 #define S21_CONTAINERS_SRC_SET_H_
 
-#include <stdlib.h>
-
 #include <iostream>
 #include <iterator>
 #include <limits>
 #include <vector>
 
-#include "./general.h"
+#include "./general_btee.h"
 
 namespace s21 {
 

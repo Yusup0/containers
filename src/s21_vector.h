@@ -1,8 +1,6 @@
 #ifndef S21_CONTAINERS_SRC_VECTOR_H_
 #define S21_CONTAINERS_SRC_VECTOR_H_
 
-#include <stdlib.h>
-
 #include <iostream>
 #include <iterator>
 #include <limits>

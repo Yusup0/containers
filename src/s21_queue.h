@@ -1,10 +1,6 @@
 #ifndef S21_CONTAINERS_SRC_QUEUE_H_
 #define S21_CONTAINERS_SRC_QUEUE_H_
 
-// 3) Не реализовали queue(std::initializer_list<value_type> const
-// &items) - а по заданию надо 4) Не реализовали void swap(queue& other) - а по
-// заданию надо
-
 #include <iostream>
 
 #include "./s21_list.h"

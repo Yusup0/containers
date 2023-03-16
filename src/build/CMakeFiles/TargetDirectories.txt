@@ -1,0 +1,5 @@
+/home/usup/Desktop/CPP2_s21_containers-0/src/build/CMakeFiles/tests.dir
+/home/usup/Desktop/CPP2_s21_containers-0/src/build/CMakeFiles/tests_coverage.dir
+/home/usup/Desktop/CPP2_s21_containers-0/src/build/CMakeFiles/test.dir
+/home/usup/Desktop/CPP2_s21_containers-0/src/build/CMakeFiles/edit_cache.dir
+/home/usup/Desktop/CPP2_s21_containers-0/src/build/CMakeFiles/rebuild_cache.dir
