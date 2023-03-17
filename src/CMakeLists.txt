@@ -16,7 +16,6 @@ target_link_libraries(tests GTest::gtest_main)
 
 gtest_discover_tests(tests)
 
-#if(CMAKE_COMPILER_IS_GNUCXX)
 LIST(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/gcov_modules")
 include(CodeCoverage)
 APPEND_COVERAGE_COMPILER_FLAGS()
@@ -28,4 +27,3 @@ SETUP_TARGET_FOR_COVERAGE_LCOV(NAME tests_coverage
                               "/usr/*"
                               "/Applications/*"
                           )
-#endif()
