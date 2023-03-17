@@ -25,7 +25,6 @@ SETUP_TARGET_FOR_COVERAGE_LCOV(NAME tests_coverage
                               EXECUTABLE tests
                               DEPENDENCIES tests
                               EXCLUDE "${PROJECT_SOURCE_DIR}/test/*"
-                              "${PROJECT_SOURCE_DIR}/test/*"
                               "/usr/*"
                           )
 endif()
