@@ -1,18 +1,33 @@
-.PHONY: all clean rebuild tests check
+.PHONY: all clean rebuild tests check coverage
+
+OS:=
+
+ifeq ($(shell uname), Linux)
+  OS=Linux
+endif
+
+ifeq ($(shell uname), Darwin)
+  OS=Darwin
+endif
+
 
 all: tests
+	./build/tests
 
 tests:
 	mkdir -p build
 	cd ./build; cmake ..
 	cd ./build; cmake --build .
-	./build/tests
 
 coverage:
 	mkdir -p build
 	cd ./build; cmake ..;
 	cd ./build; make tests_coverage
-	open ./build/tests_coverage/index.html 
+ifeq ($(OS), Linux)
+	firefox ./build/tests_coverage/index.html
+else
+	open ./build/tests_coverage/index.html
+endif
 
 rebuild: clean all
 
@@ -21,4 +36,4 @@ clean:
 
 check:
 	clang-format -i -style=Google *.h
-	clang-format -i -style=Google testm/*.cc
+	clang-format -i -style=Google test/*.cc
