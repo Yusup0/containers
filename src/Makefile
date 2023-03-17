@@ -12,17 +12,18 @@ endif
 
 
 all: tests
-	./build/tests
 
 tests:
 	mkdir -p build
 	cd ./build; cmake ..
 	cd ./build; cmake --build .
+	./build/tests
 
 coverage:
 	mkdir -p build
 	cd ./build; cmake ..;
 	cd ./build; make tests_coverage
+
 ifeq ($(OS), Linux)
 	firefox ./build/tests_coverage/index.html
 else
